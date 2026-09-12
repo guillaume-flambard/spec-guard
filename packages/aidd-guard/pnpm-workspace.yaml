@@ -1,0 +1,5 @@
+# pnpm 11 no longer reads the "pnpm" field of package.json: settings live here.
+# esbuild is a transitive dependency of vitest and needs its postinstall script
+# to place its native binary.
+allowBuilds:
+  esbuild: true

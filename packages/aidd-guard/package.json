@@ -1,0 +1,68 @@
+{
+  "name": "@zoanlogia/aidd-guard",
+  "version": "0.1.0",
+  "description": "Deterministically report which AIDD acceptance criteria are covered by a Vitest or Jest test. Never runs the tests, never calls an LLM.",
+  "keywords": [
+    "aidd",
+    "ai-driven-development",
+    "spec-driven-development",
+    "acceptance-criteria",
+    "traceability",
+    "vitest",
+    "jest",
+    "ci"
+  ],
+  "license": "MIT",
+  "author": "Guillaume Flambard <g.flambard@gmail.com>",
+  "type": "module",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "packageManager": "pnpm@11.24.0",
+  "bin": {
+    "aidd-guard": "dist/cli.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --check .",
+    "test": "vitest run",
+    "prepare": "npm run build",
+    "self:check": "node dist/cli.js check --tasks docs/tasks --tests \"src/**/*.test.ts\" --tests \"tests/*.test.ts\" --runner vitest"
+  },
+  "dependencies": {
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/node": "^22.19.2",
+    "eslint": "^9.39.1",
+    "prettier": "^3.6.2",
+    "typescript-eslint": "^8.46.4",
+    "vitest": "^3.2.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guillaume-flambard/aidd-guard.git"
+  },
+  "homepage": "https://github.com/guillaume-flambard/aidd-guard#readme",
+  "bugs": {
+    "url": "https://github.com/guillaume-flambard/aidd-guard/issues"
+  }
+}

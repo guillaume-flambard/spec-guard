@@ -1,0 +1,6 @@
+action-dist
+dist
+node_modules
+pnpm-lock.yaml
+tests/fixtures
+docs/aidd-outreach.md

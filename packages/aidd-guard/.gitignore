@@ -1,0 +1,7 @@
+# Root-anchored on purpose: tests/fixtures deliberately contains directories
+# named node_modules and dist, to prove the walker prunes them.
+/node_modules
+/dist
+/coverage
+*.tgz
+.DS_Store

@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Read-only by default. Nothing in this workflow writes to the repository.
+permissions:
+  contents: read
+
+# A new push on the same branch supersedes the run in flight.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # No `version:` input on purpose: action-setup@v6 refuses when a version is
+      # given here AND package.json pins `packageManager`. The manifest wins,
+      # so CI runs the exact pnpm the repository declares.
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      # --frozen-lockfile: CI installs what the lockfile says, or fails.
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm lint
+      - run: pnpm format
+      - run: pnpm typecheck
+
+      # The build runs before the tests on purpose: the CLI tests drive the
+      # built artifact, not only the sources.
+      - run: pnpm build
+      - run: pnpm test
+
+      # The real gate. This repository's own behaviour is written as a spec in
+      # docs/tasks and every criterion is linked to the test that covers it, so
+      # a criterion added without a test fails this build.
+      - name: Criterion coverage of this repository
+        run: pnpm self:check --fail-on fail,uncertain
