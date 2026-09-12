@@ -4,8 +4,8 @@
 export type DeltaOperation = 'base' | 'added' | 'modified' | 'removed' | 'renamed';
 
 /**
- * A SpecGuard extension, never OpenSpec syntax: an HTML comment placed
- * directly under the scenario heading.
+ * A SpecGuard extension, never syntax the underlying spec format defines
+ * itself: an HTML comment placed directly under the scenario heading.
  */
 export type Annotation =
   | { kind: 'test'; selector: string; line: number }
@@ -19,9 +19,8 @@ export interface AnnotationLine {
 
 /**
  * The contract between a format-specific parser and the format-neutral
- * criteria builder. A parser for any spec format (OpenSpec today, others
- * later) turns its own markup into this shape; `buildCriteria` never reads
- * the original markup itself.
+ * criteria builder. A parser for any spec format turns its own markup into
+ * this shape; `buildCriteria` never reads the original markup itself.
  */
 export interface ParsedScenario {
   /** Raw text after the scenario marker, however the format spells it. */

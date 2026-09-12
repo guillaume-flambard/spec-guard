@@ -35,23 +35,27 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && pnpm build:action",
+    "build": "tsc -p tsconfig.build.json && pnpm build:lib && pnpm build:action",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "format": "prettier --check .",
     "test": "vitest run",
     "prepare": "npm run build",
+    "prepack": "node scripts/strip-private-deps.mjs",
+    "postpack": "git checkout -- package.json",
+    "build:lib": "node scripts/build-lib.mjs",
     "build:action": "node scripts/build-action.mjs",
     "spec:check": "node dist/cli.js check --tests \"src/**/*.test.ts\" --tests \"tests/*.test.ts\" --runner vitest --fail-on fail,uncertain",
     "spec:link": "node dist/cli.js link --tests \"src/**/*.test.ts\" --tests \"tests/*.test.ts\" --runner vitest"
   },
   "dependencies": {
-    "@spec-guard/core": "workspace:*",
     "typescript": "^5.9.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@spec-guard/core": "workspace:*",
     "@types/node": "^22.19.2",
+    "dts-bundle-generator": "^9.5.1",
     "esbuild": "^0.28.2",
     "eslint": "^9.39.1",
     "prettier": "^3.6.2",

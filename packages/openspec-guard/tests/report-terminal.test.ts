@@ -5,9 +5,9 @@ import { describe, expect, it } from 'vitest';
 
 import { DEFAULT_TERMINAL_OPTIONS, renderTerminal, type TerminalOptions } from '@spec-guard/core';
 
-import { runCheck, type CheckInput } from '../commands/check.js';
+import { runCheck, type CheckInput } from '../src/commands/check.js';
 
-const FIXTURES = path.resolve(fileURLToPath(new URL('../../tests/fixtures', import.meta.url)));
+const FIXTURES = path.resolve(fileURLToPath(new URL('./fixtures', import.meta.url)));
 
 async function render(
   fixture: string,

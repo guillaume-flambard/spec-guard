@@ -13,9 +13,10 @@ import type { Criterion, ParsedSpec } from './types.js';
  *    not even within a single file: real corpora contain several
  *    `Scenario: Anonymous visitor`. The path alone cannot tell two criteria
  *    apart.
- * 2. `openspec-guard:` comments are stripped from the normalized text. Otherwise
- *    adding a selector to a scenario would change its id, and any future
- *    baseline would be invalidated by the very first selector someone writes.
+ * 2. The tool's own annotation comments are stripped from the normalized
+ *    text. Otherwise adding a selector to a scenario would change its id, and
+ *    any future baseline would be invalidated by the very first selector
+ *    someone writes.
  */
 
 const SPECGUARD_COMMENT = /^\s*<!--\s*openspec-guard:[\s\S]*?-->\s*$/;

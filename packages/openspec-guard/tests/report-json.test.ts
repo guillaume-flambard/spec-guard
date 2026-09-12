@@ -5,9 +5,9 @@ import { describe, expect, it } from 'vitest';
 
 import { renderJson, type Report } from '@spec-guard/core';
 
-import { runCheck } from '../commands/check.js';
+import { runCheck } from '../src/commands/check.js';
 
-const FIXTURES = path.resolve(fileURLToPath(new URL('../../tests/fixtures', import.meta.url)));
+const FIXTURES = path.resolve(fileURLToPath(new URL('./fixtures', import.meta.url)));
 
 async function corpus(): Promise<Report> {
   return (await runCheck({ cwd: path.join(FIXTURES, 'corpus'), includeChanges: true })).report;
