@@ -6,3 +6,5 @@ allowBuilds:
 
 packages:
   - 'packages/*'
+  # aidd-guard is parked until it runs on the core. Plan 2 removes this line.
+  - '!packages/aidd-guard'
