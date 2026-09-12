@@ -1,8 +1,12 @@
-# Root-anchored on purpose: tests/fixtures deliberately contains directories
-# named node_modules and dist, to prove the walker prunes them.
-/node_modules
-/dist
-/coverage
+# Unanchored on purpose: build output now lives under packages/*/dist (and
+# packages/*/coverage, packages/*/node_modules), not only at the root.
+# tests/fixtures deliberately contains directories named node_modules and
+# dist too, to prove the walker prunes them by name; that pruning is done by
+# the tool's own discovery code (src/discovery.ts), not by this file, so it
+# is unaffected by these patterns matching inside the fixtures.
+node_modules
+dist
+coverage
 *.tgz
 .DS_Store
 

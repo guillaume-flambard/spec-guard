@@ -6,7 +6,9 @@ settings:
 
 importers:
 
-  .:
+  .: {}
+
+  packages/openspec-guard:
     dependencies:
       typescript:
         specifier: ^5.9.3

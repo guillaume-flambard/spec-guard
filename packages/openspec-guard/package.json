@@ -1,0 +1,68 @@
+{
+  "name": "openspec-guard",
+  "version": "0.2.0",
+  "description": "Deterministically report which OpenSpec scenarios are covered by a Vitest or Jest test. Never runs the tests, never calls an LLM.",
+  "keywords": [
+    "openspec",
+    "spec-driven-development",
+    "traceability",
+    "test-coverage",
+    "vitest",
+    "jest",
+    "ci"
+  ],
+  "license": "MIT",
+  "author": "Guillaume Flambard <g.flambard@gmail.com>",
+  "publisher": "Memo Labs (entreprise individuelle, SIREN 924107469)",
+  "type": "module",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "packageManager": "pnpm@11.24.0",
+  "bin": {
+    "openspec-guard": "dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && pnpm build:action",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --check .",
+    "test": "vitest run",
+    "prepare": "npm run build",
+    "build:action": "node scripts/build-action.mjs",
+    "spec:check": "node dist/cli.js check --tests \"src/**/*.test.ts\" --tests \"tests/*.test.ts\" --runner vitest --fail-on fail,uncertain",
+    "spec:link": "node dist/cli.js link --tests \"src/**/*.test.ts\" --tests \"tests/*.test.ts\" --runner vitest"
+  },
+  "dependencies": {
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/node": "^22.19.2",
+    "esbuild": "^0.28.2",
+    "eslint": "^9.39.1",
+    "prettier": "^3.6.2",
+    "typescript-eslint": "^8.46.4",
+    "vitest": "^3.2.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guillaume-flambard/spec-guard.git"
+  },
+  "homepage": "https://github.com/guillaume-flambard/spec-guard#readme",
+  "bugs": {
+    "url": "https://github.com/guillaume-flambard/spec-guard/issues"
+  }
+}

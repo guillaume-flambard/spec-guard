@@ -3,3 +3,6 @@
 # to place its native binary.
 allowBuilds:
   esbuild: true
+
+packages:
+  - 'packages/*'

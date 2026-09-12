@@ -47,7 +47,7 @@ jobs:
       # the only thing that keeps the two honest.
       - name: The committed action bundle matches the source
         run: |
-          git diff --exit-code --stat -- action-dist || {
+          git diff --exit-code --stat -- packages/openspec-guard/action-dist || {
             echo "action-dist is out of date. Run pnpm build and commit it." >&2
             exit 1
           }
@@ -55,13 +55,13 @@ jobs:
       # openspec-guard checking its own fixture corpus. It is not a gate here:
       # the corpus deliberately contains failing cases.
       - name: Self check, on the fixture corpus
-        run: node dist/cli.js check --cwd tests/fixtures/corpus --include-changes
+        run: node packages/openspec-guard/dist/cli.js check --cwd packages/openspec-guard/tests/fixtures/corpus --include-changes
 
       # The real one. This repository's own behaviour is specified in OpenSpec
       # and every scenario is linked to the test that covers it, so a scenario
       # added without a test fails this build.
       - name: Spec coverage of this repository
-        run: pnpm spec:check
+        run: pnpm --filter openspec-guard spec:check
 
       # The Action, run as the runner would run it, against a fixture that is
       # known to fail: proof the bundle loads and that the gate turns the step
@@ -71,9 +71,9 @@ jobs:
       # so that override is silently ignored and the action runs at the repo
       # root, where there is no spec directory.
       - name: The action bundle runs
-        run: node action-dist/index.cjs
+        run: node packages/openspec-guard/action-dist/index.cjs
         env:
-          INPUT_WORKING-DIRECTORY: tests/fixtures/pass-explicit
+          INPUT_WORKING-DIRECTORY: packages/openspec-guard/tests/fixtures/pass-explicit
 
   # The action as a consumer sees it: action.yml, its defaults, its inputs and
   # its outputs. The job above only proves the bundle loads.
@@ -83,9 +83,9 @@ jobs:
       - uses: actions/checkout@v7
 
       - id: guard
-        uses: ./
+        uses: ./packages/openspec-guard
         with:
-          working-directory: tests/fixtures/pass-explicit
+          working-directory: packages/openspec-guard/tests/fixtures/pass-explicit
           fail-on: fail,uncertain
 
       - name: The outputs say what the report said
