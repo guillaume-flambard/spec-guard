@@ -12,6 +12,10 @@
 packages/*/node_modules
 packages/*/dist
 packages/*/coverage
+# The prepack/postpack backup of a package.json being stripped for publish.
+# Left on disk only when a pack is interrupted between the two; never meant
+# to be committed even then, see scripts/strip-private-deps.mjs.
+packages/*/package.json.orig
 *.tgz
 .DS_Store
 

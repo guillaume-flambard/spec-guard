@@ -42,7 +42,7 @@
     "test": "vitest run",
     "prepare": "npm run build",
     "prepack": "node scripts/strip-private-deps.mjs",
-    "postpack": "git checkout -- package.json",
+    "postpack": "node scripts/restore-package-json.mjs",
     "build:lib": "node scripts/build-lib.mjs",
     "build:action": "node scripts/build-action.mjs",
     "spec:check": "node dist/cli.js check --tests \"src/**/*.test.ts\" --tests \"tests/*.test.ts\" --runner vitest --fail-on fail,uncertain",
