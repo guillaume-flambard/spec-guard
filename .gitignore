@@ -5,3 +5,6 @@
 /coverage
 *.tgz
 .DS_Store
+
+# Scratch for subagent-driven execution. Never committed.
+/.superpowers
