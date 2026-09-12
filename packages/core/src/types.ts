@@ -11,6 +11,56 @@ export type Annotation =
   | { kind: 'test'; selector: string; line: number }
   | { kind: 'non-testable'; reason: string; line: number };
 
+/** One line of a scenario body, carrying its 1-based position in the file. */
+export interface AnnotationLine {
+  text: string;
+  line: number;
+}
+
+/**
+ * The contract between a format-specific parser and the format-neutral
+ * criteria builder. A parser for any spec format (OpenSpec today, others
+ * later) turns its own markup into this shape; `buildCriteria` never reads
+ * the original markup itself.
+ */
+export interface ParsedScenario {
+  /** Raw text after the scenario marker, however the format spells it. */
+  heading: string;
+  /** Heading without the `Scenario:` prefix when there is one. */
+  name: string;
+  isNamedScenario: boolean;
+  /** 1-based line of the scenario heading. */
+  line: number;
+  /** Body lines, heading excluded, trailing blank lines trimmed. */
+  bodyLines: string[];
+  /** Same body lines, carrying their 1-based line numbers. */
+  annotationLines: AnnotationLine[];
+}
+
+export interface ParsedRequirement {
+  name: string;
+  /** 1-based line of the requirement heading. */
+  line: number;
+  operation: DeltaOperation;
+  /** Normative prose between the requirement heading and the first scenario. */
+  statement: string;
+  scenarios: ParsedScenario[];
+}
+
+export interface ParseWarning {
+  code: string;
+  message: string;
+  line: number;
+}
+
+export interface ParsedSpec {
+  /** Path relative to cwd, POSIX separators. */
+  file: string;
+  capability: string;
+  requirements: ParsedRequirement[];
+  warnings: ParseWarning[];
+}
+
 /** A spec scenario, turned into a checkable criterion. */
 export interface Criterion {
   /** `sg_` plus 16 hex characters. See `criteria.ts` for the derivation. */

@@ -1,9 +1,17 @@
 import { appendFile } from 'node:fs/promises';
 
+import {
+  DEFAULT_TERMINAL_OPTIONS,
+  EXIT_GATE,
+  EXIT_INPUT,
+  EXIT_INTERNAL,
+  EXIT_OK,
+  isOpenSpecGuardError,
+  renderJson,
+  renderTerminal,
+} from '@spec-guard/core';
+
 import { AnnotationErrors, runCheck } from '../commands/check.js';
-import { EXIT_GATE, EXIT_INPUT, EXIT_INTERNAL, EXIT_OK, isOpenSpecGuardError } from '../errors.js';
-import { renderJson } from '../report/json.js';
-import { DEFAULT_TERMINAL_OPTIONS, renderTerminal } from '../report/terminal.js';
 import { annotationsFor, outputsFor, renderOutputs, summaryFor } from './annotate.js';
 import { readConfig, type Env } from './inputs.js';
 

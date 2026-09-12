@@ -1,9 +1,8 @@
 import path from 'node:path';
 
+import { OpenSpecGuardError, type Runner, type Verdict } from '@spec-guard/core';
+
 import type { CheckInput } from '../commands/check.js';
-import { OpenSpecGuardError } from '../errors.js';
-import type { Runner } from '../tests/detect.js';
-import type { Verdict } from '../types.js';
 
 /**
  * Reading the Action's inputs.

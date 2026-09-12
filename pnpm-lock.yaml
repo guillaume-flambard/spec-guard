@@ -8,8 +8,36 @@ importers:
 
   .: {}
 
+  packages/core:
+    dependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+    devDependencies:
+      '@eslint/js':
+        specifier: ^9.39.1
+        version: 9.39.5
+      '@types/node':
+        specifier: ^22.19.2
+        version: 22.20.1
+      eslint:
+        specifier: ^9.39.1
+        version: 9.39.5(supports-color@7.2.0)
+      prettier:
+        specifier: ^3.6.2
+        version: 3.9.6
+      typescript-eslint:
+        specifier: ^8.46.4
+        version: 8.70.0(eslint@9.39.5(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3)
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@22.20.1)(supports-color@7.2.0)
+
   packages/openspec-guard:
     dependencies:
+      '@spec-guard/core':
+        specifier: workspace:*
+        version: link:../core
       typescript:
         specifier: ^5.9.3
         version: 5.9.3

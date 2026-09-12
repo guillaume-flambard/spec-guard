@@ -46,6 +46,7 @@
     "spec:link": "node dist/cli.js link --tests \"src/**/*.test.ts\" --tests \"tests/*.test.ts\" --runner vitest"
   },
   "dependencies": {
+    "@spec-guard/core": "workspace:*",
     "typescript": "^5.9.3"
   },
   "devDependencies": {

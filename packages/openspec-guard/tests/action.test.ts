@@ -3,11 +3,12 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
+import { EXIT_GATE, EXIT_INPUT, EXIT_OK, isOpenSpecGuardError } from '@spec-guard/core';
+
 import { annotationsFor, renderOutputs, summaryFor } from '../src/action/annotate.js';
 import { readConfig, type Env } from '../src/action/inputs.js';
 import { runAction, type ActionIo } from '../src/action/main.js';
 import { runCheck } from '../src/commands/check.js';
-import { EXIT_GATE, EXIT_INPUT, EXIT_OK, isOpenSpecGuardError } from '../src/errors.js';
 
 const FIXTURES = path.resolve(fileURLToPath(new URL('./fixtures', import.meta.url)));
 

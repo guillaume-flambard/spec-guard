@@ -1,21 +1,27 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { buildCriteria } from '../criteria.js';
-import { discover, type DiscoveryOptions } from '../discovery.js';
-import { EXIT_INPUT, OpenSpecGuardError } from '../errors.js';
-import { applyEdits, nonTestableAnnotation, testAnnotation, type LinkEdit } from '../link/edit.js';
 import {
+  buildCriteria,
   buildTestIndex,
   DEFAULT_MATCH_OPTIONS,
+  detectRunner,
+  discover,
+  EXIT_INPUT,
+  extractTestTitles,
   matchCriterion,
+  normalize,
+  OpenSpecGuardError,
+  type Candidate,
+  type Criterion,
+  type DiscoveryOptions,
   type MatchOptions,
-} from '../matching/match.js';
+  type Runner,
+  type TestTitle,
+} from '@spec-guard/core';
+
+import { applyEdits, nonTestableAnnotation, testAnnotation, type LinkEdit } from '../link/edit.js';
 import { parseSpec } from '../openspec/parse.js';
-import { detectRunner, type Runner } from '../tests/detect.js';
-import { extractTestTitles } from '../tests/extract.js';
-import { normalize } from '../matching/normalize.js';
-import type { Candidate, Criterion, TestTitle } from '../types.js';
 import { AnnotationErrors } from './check.js';
 
 /**

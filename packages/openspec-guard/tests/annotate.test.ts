@@ -5,8 +5,9 @@ import { fileURLToPath } from 'node:url';
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import type { Report } from '@spec-guard/core';
+
 import { runCheck } from '../src/commands/check.js';
-import type { Report } from '../src/report/types.js';
 
 const CORPUS = path.resolve(fileURLToPath(new URL('./fixtures/corpus', import.meta.url)));
 

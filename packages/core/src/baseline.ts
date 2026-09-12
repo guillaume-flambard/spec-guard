@@ -1,7 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { OpenSpecGuardError } from './errors.js';
+import { SpecGuardError } from './errors.js';
 import type { MatchReason, Verdict } from './types.js';
 
 /**
@@ -68,7 +68,7 @@ export async function loadBaseline(cwd: string, relativePath: string): Promise<B
   try {
     raw = await readFile(absolute, 'utf8');
   } catch {
-    throw new OpenSpecGuardError(
+    throw new SpecGuardError(
       'E_BASELINE_NOT_FOUND',
       `No baseline at ${relativePath}. Create one with --update-baseline, ` +
         'or drop --baseline to check everything.',
@@ -79,12 +79,12 @@ export async function loadBaseline(cwd: string, relativePath: string): Promise<B
   try {
     parsed = JSON.parse(raw);
   } catch {
-    throw new OpenSpecGuardError('E_BASELINE_INVALID', `${relativePath} is not valid JSON.`);
+    throw new SpecGuardError('E_BASELINE_INVALID', `${relativePath} is not valid JSON.`);
   }
 
   const file = parsed as Partial<BaselineFile>;
   if (file.schemaVersion !== BASELINE_SCHEMA_VERSION || !Array.isArray(file.entries)) {
-    throw new OpenSpecGuardError(
+    throw new SpecGuardError(
       'E_BASELINE_INVALID',
       `${relativePath} is not a baseline of schema version ${BASELINE_SCHEMA_VERSION}. ` +
         'Regenerate it with --update-baseline.',
@@ -94,7 +94,7 @@ export async function loadBaseline(cwd: string, relativePath: string): Promise<B
   const byId = new Map<string, BaselineEntry>();
   for (const entry of file.entries) {
     if (!isEntry(entry)) {
-      throw new OpenSpecGuardError(
+      throw new SpecGuardError(
         'E_BASELINE_INVALID',
         `${relativePath} holds an entry without an id and a reason.`,
       );

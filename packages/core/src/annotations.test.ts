@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseAnnotations, type AnnotationLine } from './annotations.js';
+import { parseAnnotations } from './annotations.js';
+import type { AnnotationLine } from './types.js';
 
 function lines(...texts: string[]): AnnotationLine[] {
   return texts.map((text, index) => ({ text, line: index + 10 }));

@@ -1,5 +1,11 @@
-import type { DeltaOperation } from '../types.js';
-import type { AnnotationLine } from './annotations.js';
+import {
+  type AnnotationLine,
+  type DeltaOperation,
+  type ParsedRequirement,
+  type ParsedScenario,
+  type ParsedSpec,
+  type ParseWarning,
+} from '@spec-guard/core';
 
 /**
  * OpenSpec markdown parser. Pure function over a string, no I/O.
@@ -14,45 +20,12 @@ import type { AnnotationLine } from './annotations.js';
  *
  * Structural problems produce warnings, not errors: a spec that is odd is
  * still worth checking. Only annotation problems stop a run.
+ *
+ * `ParsedScenario`, `ParsedRequirement`, `ParseWarning` and `ParsedSpec` are
+ * defined in the core: they are the contract between any spec format's
+ * parser and the format-neutral criteria builder, not something specific to
+ * OpenSpec markdown.
  */
-
-export interface ParsedScenario {
-  /** Raw text after `#### `. */
-  heading: string;
-  /** Heading without the `Scenario:` prefix when there is one. */
-  name: string;
-  isNamedScenario: boolean;
-  /** 1-based line of the `####` heading. */
-  line: number;
-  /** Body lines, heading excluded, trailing blank lines trimmed. */
-  bodyLines: string[];
-  /** Same body lines, carrying their 1-based line numbers. */
-  annotationLines: AnnotationLine[];
-}
-
-export interface ParsedRequirement {
-  name: string;
-  /** 1-based line of the `###` heading. */
-  line: number;
-  operation: DeltaOperation;
-  /** Normative prose between the requirement heading and the first scenario. */
-  statement: string;
-  scenarios: ParsedScenario[];
-}
-
-export interface ParseWarning {
-  code: string;
-  message: string;
-  line: number;
-}
-
-export interface ParsedSpec {
-  /** Path relative to cwd, POSIX separators. */
-  file: string;
-  capability: string;
-  requirements: ParsedRequirement[];
-  warnings: ParseWarning[];
-}
 
 const SECTION_HEADING = /^##\s+(.+?)\s*$/;
 const REQUIREMENT_HEADING = /^###\s+Requirement\s*:\s*(.+?)\s*$/;

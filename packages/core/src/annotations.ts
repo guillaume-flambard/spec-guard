@@ -1,5 +1,5 @@
-import { type ErrorCode } from '../errors.js';
-import type { Annotation } from '../types.js';
+import { type ErrorCode } from './errors.js';
+import type { Annotation, AnnotationLine } from './types.js';
 
 /**
  * OpenSpec Guard annotations.
@@ -24,11 +24,6 @@ import type { Annotation } from '../types.js';
 export interface AnnotationError {
   code: ErrorCode;
   message: string;
-  line: number;
-}
-
-export interface AnnotationLine {
-  text: string;
   line: number;
 }
 

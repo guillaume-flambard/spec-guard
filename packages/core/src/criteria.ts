@@ -1,9 +1,8 @@
 import { createHash } from 'node:crypto';
 
-import { OpenSpecGuardError } from './errors.js';
-import { parseAnnotations } from './openspec/annotations.js';
-import type { ParsedSpec } from './openspec/parse.js';
-import type { Criterion } from './types.js';
+import { parseAnnotations } from './annotations.js';
+import { SpecGuardError } from './errors.js';
+import type { Criterion, ParsedSpec } from './types.js';
 
 /**
  * Criterion identifier derivation.
@@ -75,7 +74,7 @@ export function disambiguateIds(ids: readonly string[]): string[] {
 export interface BuildCriteriaResult {
   criteria: Criterion[];
   /** Annotation problems. Any of these stops the run with exit code 2. */
-  errors: OpenSpecGuardError[];
+  errors: SpecGuardError[];
   /** Scenarios under a `## REMOVED Requirements` section, counted not checked. */
   removedScenarioCount: number;
 }
@@ -89,7 +88,7 @@ export interface BuildCriteriaResult {
 export function buildCriteria(specs: readonly ParsedSpec[]): BuildCriteriaResult {
   const draft: Omit<Criterion, 'id'>[] = [];
   const rawIds: string[] = [];
-  const errors: OpenSpecGuardError[] = [];
+  const errors: SpecGuardError[] = [];
   let removedScenarioCount = 0;
 
   for (const spec of specs) {
@@ -103,7 +102,7 @@ export function buildCriteria(specs: readonly ParsedSpec[]): BuildCriteriaResult
         const parsed = parseAnnotations(scenario.annotationLines);
         for (const error of parsed.errors) {
           errors.push(
-            new OpenSpecGuardError(error.code, error.message, {
+            new SpecGuardError(error.code, error.message, {
               file: spec.file,
               line: error.line,
             }),

@@ -3,10 +3,15 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
+import {
+  EXIT_GATE,
+  EXIT_OK,
+  renderJson,
+  type CriterionResult,
+  type Report,
+} from '@spec-guard/core';
+
 import { AnnotationErrors, runCheck, type CheckInput } from '../src/commands/check.js';
-import { EXIT_GATE, EXIT_OK } from '../src/errors.js';
-import { renderJson } from '../src/report/json.js';
-import type { CriterionResult, Report } from '../src/report/types.js';
 
 const FIXTURES = path.resolve(fileURLToPath(new URL('./fixtures', import.meta.url)));
 

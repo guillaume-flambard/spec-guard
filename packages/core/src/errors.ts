@@ -46,14 +46,14 @@ export interface ErrorLocation {
   line: number;
 }
 
-export class OpenSpecGuardError extends Error {
+export class SpecGuardError extends Error {
   readonly code: ErrorCode;
   readonly exitCode: number;
   readonly location: ErrorLocation | null;
 
   constructor(code: ErrorCode, message: string, location: ErrorLocation | null = null) {
     super(message);
-    this.name = 'OpenSpecGuardError';
+    this.name = 'SpecGuardError';
     this.code = code;
     this.exitCode = EXIT_INPUT;
     this.location = location;
@@ -66,6 +66,12 @@ export class OpenSpecGuardError extends Error {
   }
 }
 
-export function isOpenSpecGuardError(value: unknown): value is OpenSpecGuardError {
-  return value instanceof OpenSpecGuardError;
+export function isSpecGuardError(value: unknown): value is SpecGuardError {
+  return value instanceof SpecGuardError;
 }
+
+/**
+ * Kept so `openspec-guard`'s published type exports do not break. Removed in
+ * the next major, not before.
+ */
+export { SpecGuardError as OpenSpecGuardError, isSpecGuardError as isOpenSpecGuardError };

@@ -1,4 +1,4 @@
-import type { CriterionResult, Report } from '../report/types.js';
+import type { CriterionResult, Report } from '@spec-guard/core';
 
 /**
  * Turning a report into what a reviewer sees on a pull request.

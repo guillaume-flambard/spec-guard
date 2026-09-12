@@ -20,8 +20,6 @@ export {
   isOpenSpecGuardError,
   OpenSpecGuardError,
   type ErrorCode,
-} from './errors.js';
-export {
   buildBaseline,
   diffBaseline,
   isBaselined,
@@ -33,14 +31,10 @@ export {
   type Baseline,
   type BaselineEntry,
   type BaselineFile,
-} from './baseline.js';
-export { renderJson } from './report/json.js';
-export {
+  renderJson,
   renderTerminal,
   DEFAULT_TERMINAL_OPTIONS,
   type TerminalOptions,
-} from './report/terminal.js';
-export {
   SCHEMA_VERSION,
   type CriterionResult,
   type Report,
@@ -48,14 +42,12 @@ export {
   type ReportInput,
   type ReportOptions,
   type TestRef,
-} from './report/types.js';
-export { type Runner } from './tests/detect.js';
-export {
+  type Runner,
   type Annotation,
   type Criterion,
   type MatchReason,
   type TestTitle,
   type Verdict,
-} from './types.js';
-export { type Summary } from './verdict.js';
+  type Summary,
+} from '@spec-guard/core';
 export { VERSION } from './version.js';

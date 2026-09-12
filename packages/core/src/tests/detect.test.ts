@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Manifest } from '../discovery.js';
-import { isOpenSpecGuardError } from '../errors.js';
+import { isSpecGuardError } from '../errors.js';
 import { detectRunner } from './detect.js';
 
 function manifest(json: Record<string, unknown>, file = 'package.json'): Manifest {
@@ -13,7 +13,7 @@ function codeOf(run: () => unknown): string {
     run();
     return 'no-error';
   } catch (error) {
-    return isOpenSpecGuardError(error) ? error.code : 'not-an-openspec-guard-error';
+    return isSpecGuardError(error) ? error.code : 'not-an-openspec-guard-error';
   }
 }
 

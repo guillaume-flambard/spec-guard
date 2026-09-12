@@ -1,4 +1,4 @@
-import { OpenSpecGuardError } from '../errors.js';
+import { OpenSpecGuardError } from '@spec-guard/core';
 
 /**
  * Writing annotations back into a spec file.

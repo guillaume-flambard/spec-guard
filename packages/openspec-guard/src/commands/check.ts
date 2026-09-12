@@ -2,34 +2,45 @@ import { readFile } from 'node:fs/promises';
 
 import {
   buildBaseline,
+  buildCriteria,
+  buildTestIndex,
   DEFAULT_BASELINE_PATH,
+  DEFAULT_MIN_SHARED_TERMS,
+  DEFAULT_PASS_THRESHOLD,
+  DEFAULT_UNCERTAIN_THRESHOLD,
+  decideVerdict,
+  detectRunner,
   diffBaseline,
+  discover,
+  evaluateGates,
+  extractTestTitles,
   isBaselined,
   loadBaseline,
+  matchCriterion,
+  OpenSpecGuardError,
+  EXIT_GATE,
+  EXIT_INPUT,
+  EXIT_OK,
+  SCHEMA_VERSION,
   staleEntries,
+  summarize,
   writeBaseline,
   type Baseline,
   type BaselineCandidate,
   type BaselineDiff,
-} from '../baseline.js';
-import { buildCriteria } from '../criteria.js';
-import { discover, type DiscoveryOptions } from '../discovery.js';
-import { EXIT_GATE, EXIT_INPUT, EXIT_OK, OpenSpecGuardError } from '../errors.js';
-import {
-  buildTestIndex,
-  DEFAULT_MIN_SHARED_TERMS,
-  DEFAULT_PASS_THRESHOLD,
-  DEFAULT_UNCERTAIN_THRESHOLD,
-  matchCriterion,
-} from '../matching/match.js';
+  type Candidate,
+  type CriterionOutcome,
+  type CriterionResult,
+  type DiscoveryOptions,
+  type Report,
+  type Runner,
+  type TestRef,
+  type TestTitle,
+  type Verdict,
+} from '@spec-guard/core';
+
 import { parseSpec } from '../openspec/parse.js';
-import { detectRunner, type Runner } from '../tests/detect.js';
-import { extractTestTitles } from '../tests/extract.js';
-import type { Candidate, TestTitle, Verdict } from '../types.js';
-import { decideVerdict, evaluateGates, summarize, type CriterionOutcome } from '../verdict.js';
 import { VERSION } from '../version.js';
-import type { CriterionResult, Report, TestRef } from '../report/types.js';
-import { SCHEMA_VERSION } from '../report/types.js';
 
 /**
  * The only place that composes the modules. Everything it needs is passed in:

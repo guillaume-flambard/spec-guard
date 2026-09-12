@@ -3,9 +3,9 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
+import { renderJson, type Report } from '@spec-guard/core';
+
 import { runCheck } from '../commands/check.js';
-import { renderJson } from './json.js';
-import type { Report } from './types.js';
 
 const FIXTURES = path.resolve(fileURLToPath(new URL('../../tests/fixtures', import.meta.url)));
 

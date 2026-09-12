@@ -5,9 +5,10 @@ import { fileURLToPath } from 'node:url';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { isOpenSpecGuardError } from '@spec-guard/core';
+
 import { runCheck } from '../src/commands/check.js';
 import { runLink, type LinkAsk, type LinkChoice, type LinkProposal } from '../src/commands/link.js';
-import { isOpenSpecGuardError } from '../src/errors.js';
 import { applyEdits, nonTestableAnnotation, testAnnotation } from '../src/link/edit.js';
 import { __testing } from '../src/link/prompt.js';
 

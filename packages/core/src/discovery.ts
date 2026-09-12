@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 
-import { OpenSpecGuardError } from './errors.js';
+import { SpecGuardError } from './errors.js';
 
 /**
  * Everything that touches the filesystem lives here: root resolution, tree
@@ -169,7 +169,7 @@ function resolveSpecRoot(cwd: string, specsPath: string | undefined): string {
   if (specsPath !== undefined) {
     const explicit = path.resolve(cwd, specsPath);
     if (!existsSync(explicit)) {
-      throw new OpenSpecGuardError(
+      throw new SpecGuardError(
         'E_SPECS_NOT_FOUND',
         `--specs points at ${toRelativePosix(cwd, explicit)}, which does not exist.`,
       );
@@ -183,14 +183,14 @@ function resolveSpecRoot(cwd: string, specsPath: string | undefined): string {
   const hasBare = existsSync(bare);
 
   if (hasOpenspec && hasBare) {
-    throw new OpenSpecGuardError(
+    throw new SpecGuardError(
       'E_SPECS_AMBIGUOUS',
       'Both openspec/specs and specs exist. Pass --specs to say which one holds the specs.',
     );
   }
   if (hasOpenspec) return openspec;
   if (hasBare) return bare;
-  throw new OpenSpecGuardError(
+  throw new SpecGuardError(
     'E_SPECS_NOT_FOUND',
     'No spec directory found. Expected openspec/specs or specs, or pass --specs.',
   );
@@ -236,7 +236,7 @@ export async function discover(options: DiscoveryOptions): Promise<Discovery> {
   specs.sort((left, right) => (left.file < right.file ? -1 : left.file > right.file ? 1 : 0));
 
   if (specs.length === 0 && options.allowEmpty !== true) {
-    throw new OpenSpecGuardError(
+    throw new SpecGuardError(
       'E_SPECS_EMPTY',
       `${toRelativePosix(cwd, specRoot)} contains no spec.md. ` +
         'Reporting success on zero criteria is the worst failure mode for a gate; ' +
@@ -246,7 +246,7 @@ export async function discover(options: DiscoveryOptions): Promise<Discovery> {
 
   const codeRoot = path.resolve(cwd, options.codePath ?? '.');
   if (!(await isDirectory(codeRoot))) {
-    throw new OpenSpecGuardError(
+    throw new SpecGuardError(
       'E_CODE_NOT_FOUND',
       `--code points at ${toRelativePosix(cwd, codeRoot)}, which is not a directory.`,
     );

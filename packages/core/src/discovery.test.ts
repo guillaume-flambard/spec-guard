@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import { discover, globToRegExp, toRelativePosix } from './discovery.js';
-import { isOpenSpecGuardError } from './errors.js';
+import { isSpecGuardError } from './errors.js';
 
 const FIXTURES = path.resolve(fileURLToPath(new URL('../tests/fixtures', import.meta.url)));
 
@@ -17,7 +17,7 @@ async function codeOf(promise: Promise<unknown>): Promise<string> {
     await promise;
     return 'no-error';
   } catch (error) {
-    return isOpenSpecGuardError(error) ? error.code : 'not-an-openspec-guard-error';
+    return isSpecGuardError(error) ? error.code : 'not-an-openspec-guard-error';
   }
 }
 

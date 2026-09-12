@@ -1,5 +1,5 @@
 import type { Manifest } from '../discovery.js';
-import { OpenSpecGuardError } from '../errors.js';
+import { SpecGuardError } from '../errors.js';
 
 /**
  * Runner detection.
@@ -83,7 +83,7 @@ export function detectRunner(
   const jest = [...collect(manifests, 'jest'), ...configEvidence(runnerConfigFiles, 'jest')];
 
   if (vitest.length === 0 && jest.length === 0) {
-    throw new OpenSpecGuardError(
+    throw new SpecGuardError(
       'E_RUNNER_NOT_FOUND',
       'No Vitest or Jest setup found under the code root. ' +
         'Pass --runner vitest|jest if the runner lives somewhere this cannot see.',

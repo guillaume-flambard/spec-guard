@@ -2,20 +2,22 @@
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 
-import { AnnotationErrors, runCheck, type CheckInput } from './commands/check.js';
-import { runLink } from './commands/link.js';
-import { createTerminalAsk } from './link/prompt.js';
 import {
+  DEFAULT_TERMINAL_OPTIONS,
   EXIT_INPUT,
   EXIT_INTERNAL,
   EXIT_OK,
   isOpenSpecGuardError,
   OpenSpecGuardError,
-} from './errors.js';
-import { renderJson } from './report/json.js';
-import { DEFAULT_TERMINAL_OPTIONS, renderTerminal } from './report/terminal.js';
-import type { Runner } from './tests/detect.js';
-import type { Verdict } from './types.js';
+  renderJson,
+  renderTerminal,
+  type Runner,
+  type Verdict,
+} from '@spec-guard/core';
+
+import { AnnotationErrors, runCheck, type CheckInput } from './commands/check.js';
+import { runLink } from './commands/link.js';
+import { createTerminalAsk } from './link/prompt.js';
 import { VERSION } from './version.js';
 
 /**
