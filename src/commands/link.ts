@@ -1,7 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { buildCriteria } from '../criteria.js';
+import { assertRecognizedScenarios, buildCriteria } from '../criteria.js';
 import { discover, type DiscoveryOptions } from '../discovery.js';
 import { EXIT_INPUT, OpenSpecGuardError } from '../errors.js';
 import { applyEdits, nonTestableAnnotation, testAnnotation, type LinkEdit } from '../link/edit.js';
@@ -102,6 +102,8 @@ export async function runLink(input: LinkInput): Promise<LinkResult> {
       return parseSpec(source, spec.file, spec.capability);
     }),
   );
+
+  assertRecognizedScenarios(specs);
 
   const { criteria, errors } = buildCriteria(specs);
   if (errors.length > 0) throw new AnnotationErrors(errors);

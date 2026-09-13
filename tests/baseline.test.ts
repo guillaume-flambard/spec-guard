@@ -43,6 +43,14 @@ async function codeOf(promise: Promise<unknown>): Promise<string> {
 }
 
 describe('--update-baseline', () => {
+  it('preserves the existing baseline when no scenarios are recognized', async () => {
+    const cwd = await scratch('unsupported-spec-kit');
+    const existing = '{"keep":"existing baseline"}\n';
+    await writeFile(path.join(cwd, DEFAULT_BASELINE_PATH), existing);
+    expect(await codeOf(check(cwd, { updateBaseline: true }))).toBe('E_NO_CRITERIA');
+    expect(await readFile(path.join(cwd, DEFAULT_BASELINE_PATH), 'utf8')).toBe(existing);
+  });
+
   it('freezes what is uncovered, and nothing else', async () => {
     const cwd = await scratch('fail-no-candidate');
     const { exitCode, baselineUpdate } = await check(cwd, { updateBaseline: true });

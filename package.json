@@ -1,6 +1,6 @@
 {
   "name": "openspec-guard",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Deterministically report which OpenSpec scenarios are covered by a Vitest or Jest test. Never runs the tests, never calls an LLM.",
   "keywords": [
     "openspec",
@@ -32,7 +32,8 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json && pnpm build:action",
@@ -59,10 +60,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/guillaume-flambard/openspec-guard.git"
+    "url": "git+https://github.com/guillaume-flambard/spec-guard.git"
   },
-  "homepage": "https://github.com/guillaume-flambard/openspec-guard#readme",
+  "homepage": "https://github.com/guillaume-flambard/spec-guard#readme",
   "bugs": {
-    "url": "https://github.com/guillaume-flambard/openspec-guard/issues"
+    "url": "https://github.com/guillaume-flambard/spec-guard/issues"
   }
 }

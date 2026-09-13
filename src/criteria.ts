@@ -72,6 +72,27 @@ export function disambiguateIds(ids: readonly string[]): string[] {
   });
 }
 
+/** Reject a wrong format before reporting success or rewriting a baseline.
+ * Removed scenarios still prove that the input was recognized as OpenSpec.
+ * A directory with no files is handled by discovery and its --allow-empty flag.
+ */
+export function assertRecognizedScenarios(specs: readonly ParsedSpec[]): void {
+  if (specs.length === 0) return;
+  if (
+    specs.some((spec) => spec.requirements.some((requirement) => requirement.scenarios.length > 0))
+  )
+    return;
+
+  throw new OpenSpecGuardError(
+    'E_NO_CRITERIA',
+    `Found ${specs.length} spec.md file(s), but no OpenSpec scenarios were recognized. ` +
+      'Expected ## Requirements, ### Requirement: ..., and #### Scenario: ... headings. ' +
+      'Check --specs and the document format; Spec Kit and other formats are not supported. ' +
+      'Nothing was checked.',
+    { file: specs[0]!.file, line: 1 },
+  );
+}
+
 export interface BuildCriteriaResult {
   criteria: Criterion[];
   /** Annotation problems. Any of these stops the run with exit code 2. */

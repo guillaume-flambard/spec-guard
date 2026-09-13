@@ -418,3 +418,13 @@ it('exposes the annotation writers used by the command', () => {
   expect(testAnnotation('a')).toBe('<!-- openspec-guard:test="a" -->');
   expect(nonTestableAnnotation('b')).toBe('<!-- openspec-guard:non-testable reason="b" -->');
 });
+
+describe('link input validation', () => {
+  it('rejects unrecognized specs before asking for links', async () => {
+    const operator = scripted();
+    await expect(
+      runLink({ cwd: path.join(FIXTURES, 'unsupported-spec-kit'), ask: operator.ask }),
+    ).rejects.toMatchObject({ code: 'E_NO_CRITERIA' });
+    expect(operator.seen).toEqual([]);
+  });
+});

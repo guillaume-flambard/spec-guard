@@ -243,6 +243,13 @@ describe('runAction', () => {
     expect(errors).toHaveLength(2);
   });
 
+  it('fails the action without success outputs for unrecognized specs', async () => {
+    const io = fakeIo({ GITHUB_WORKSPACE: fixture('unsupported-spec-kit') });
+    expect(await runAction(io)).toBe(EXIT_INPUT);
+    expect(io.lines.join('\n')).toContain('E_NO_CRITERIA');
+    expect(io.files.size).toBe(0);
+  });
+
   it('reports a missing spec root rather than crashing', async () => {
     const io = fakeIo({ GITHUB_WORKSPACE: fixture('empty-specs') });
     expect(await runAction(io)).toBe(EXIT_INPUT);
