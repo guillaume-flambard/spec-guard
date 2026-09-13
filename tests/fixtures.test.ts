@@ -71,11 +71,14 @@ describe('tests/fixtures', () => {
       'fail-no-candidate',
       'fail-selector-ambiguous',
       'fail-selector-broken',
+      'no-scenarios',
       'pass-explicit',
       'pass-heuristic',
+      'removed-only',
       'skip-non-testable',
       'skipped-test',
       'uncertain',
+      'unsupported-spec-kit',
     ]);
   });
 });

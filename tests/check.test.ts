@@ -92,6 +92,36 @@ describe('runCheck, one verdict per fixture', () => {
 });
 
 describe('runCheck, configuration errors', () => {
+  it('rejects spec files with no recognized OpenSpec scenarios', async () => {
+    await expect(check('unsupported-spec-kit')).rejects.toMatchObject({
+      code: 'E_NO_CRITERIA',
+      exitCode: 2,
+    });
+  });
+
+  it('does not let allow-empty bypass an unrecognized format', async () => {
+    await expect(check('unsupported-spec-kit', { allowEmpty: true })).rejects.toMatchObject({
+      code: 'E_NO_CRITERIA',
+    });
+  });
+
+  it('rejects recognized requirements with no scenarios', async () => {
+    await expect(check('no-scenarios')).rejects.toMatchObject({ code: 'E_NO_CRITERIA' });
+  });
+
+  it('keeps a removal-only spec valid without checking removed scenarios', async () => {
+    const { report, exitCode } = await check('removed-only', { runner: 'vitest' });
+    expect(exitCode).toBe(EXIT_OK);
+    expect(report.summary.total).toBe(0);
+    expect(report.input.removedScenarioCount).toBe(1);
+  });
+
+  it('still allows a deliberately empty spec directory', async () => {
+    const { report, exitCode } = await check('empty-specs', { allowEmpty: true, runner: 'vitest' });
+    expect(exitCode).toBe(EXIT_OK);
+    expect(report.summary.total).toBe(0);
+  });
+
   it('collects every annotation error and refuses to report', async () => {
     await expect(check('bad-annotation')).rejects.toBeInstanceOf(AnnotationErrors);
     const error = await check('bad-annotation').catch((caught: unknown) => caught);

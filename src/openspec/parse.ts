@@ -13,7 +13,8 @@ import type { AnnotationLine } from './annotations.js';
  *   We keep `isNamedScenario` so the anomaly is visible instead of silent.
  *
  * Structural problems produce warnings, not errors: a spec that is odd is
- * still worth checking. Only annotation problems stop a run.
+ * still worth checking. Callers reject an input set with no recognized scenarios;
+ * annotation problems also stop a run.
  */
 
 export interface ParsedScenario {

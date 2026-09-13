@@ -12,7 +12,7 @@ A link does not prove that the test passes or checks the right behaviour.
 From a repository with `openspec/specs` and Vitest or Jest tests:
 
 ```bash
-npx --yes openspec-guard@0.2.0 check
+npx --yes openspec-guard@0.3.0 check
 ```
 
 This command reports without changing files. It exits successfully even when it
@@ -21,7 +21,7 @@ finds unlinked scenarios; CI gates are opt-in. Node 20.11 or later is required.
 If your repository also has Playwright tests, scope the test files explicitly:
 
 ```bash
-npx --yes openspec-guard@0.2.0 check --tests 'src/**/*.test.ts' --runner vitest
+npx --yes openspec-guard@0.3.0 check --tests 'src/**/*.test.ts' --runner vitest
 ```
 
 **Found a wrong match or a confusing result?**
@@ -54,7 +54,7 @@ Run the complete [signup example](examples/signup) from a clone of this reposito
 
 ```bash
 cd examples/signup
-npx --yes openspec-guard@0.2.0 check \
+npx --yes openspec-guard@0.3.0 check \
   --runner vitest --require-selector --fail-on fail,uncertain
 ```
 
@@ -127,14 +127,14 @@ The report separates passes by selector from passes by similarity.
 After reading the first report, record the existing unlinked scenarios:
 
 ```bash
-npx --yes openspec-guard@0.2.0 check --update-baseline
+npx --yes openspec-guard@0.3.0 check --update-baseline
 git add .openspec-guard-baseline.json
 ```
 
 Then fail on new failures:
 
 ```bash
-npx --yes openspec-guard@0.2.0 check \
+npx --yes openspec-guard@0.3.0 check \
   --baseline .openspec-guard-baseline.json --fail-on fail
 ```
 
@@ -148,13 +148,13 @@ the baseline and running the gate.
 Without a baseline, a CI step can be:
 
 ```yaml
-- run: npx --yes openspec-guard@0.2.0 check --fail-on fail,uncertain
+- run: npx --yes openspec-guard@0.3.0 check --fail-on fail,uncertain
 ```
 
 A bundled GitHub Action is also available:
 
 ```yaml
-- uses: guillaume-flambard/spec-guard@v0.2.0
+- uses: guillaume-flambard/spec-guard@v0.3.0
   with:
     fail-on: fail
 ```
@@ -169,8 +169,8 @@ A bundled GitHub Action is also available:
 ## JSON and options
 
 ```bash
-npx --yes openspec-guard@0.2.0 check --format json > report.json
-npx --yes openspec-guard@0.2.0 check --help
+npx --yes openspec-guard@0.3.0 check --format json > report.json
+npx --yes openspec-guard@0.3.0 check --help
 ```
 
 JSON uses relative paths and stable ordering, with no timestamp or machine name.
@@ -182,9 +182,25 @@ Useful options include `--cwd`, `--specs`, repeatable `--tests`,
 `--runner vitest|jest`, `--include-changes`, `--require-selector`, `--verbose`,
 `--fail-on` and `--min-pass`.
 
-The source branch also contains the interactive `link` command and
-`--min-coverage`. They are not in npm 0.2.0. The examples above use the published
-version so you can run them without building this repository.
+Version 0.3.0 also includes the interactive `link` command and a `--min-coverage`
+gate. The coverage floor reads the whole report even when a baseline is present.
+
+```bash
+npx --yes openspec-guard@0.3.0 link --limit 10
+npx --yes openspec-guard@0.3.0 check --min-coverage 80
+```
+
+## When no scenarios are recognized
+
+If spec files exist but none contains an OpenSpec scenario, Guard exits with code 2
+and `E_NO_CRITERIA`. It reports the expected headings and writes no baseline or
+success report. This includes unsupported formats such as Spec Kit.
+
+`--allow-empty` only permits a directory containing no `spec.md` files. It cannot
+bypass an unrecognized format. Valid removal-only deltas still report their
+removed scenarios without requiring tests for deleted behaviour.
+
+See the [release notes](CHANGELOG.md) for the changes since npm 0.2.0.
 
 ## Limitations
 

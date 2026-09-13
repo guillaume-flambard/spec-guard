@@ -105,6 +105,23 @@ describe('openspec-guard CLI', () => {
     expect(result.stderr).toContain('--fail-on');
   });
 
+  it('exits 2 without a success report when a spec format is unrecognized', async () => {
+    const result = await cli(
+      'check',
+      '--cwd',
+      fixture('unsupported-spec-kit'),
+      '--format',
+      'json',
+      '--fail-on',
+      'fail,uncertain',
+    );
+    expect(result.code).toBe(2);
+    expect(result.stdout).toBe('');
+    expect(result.stderr).toContain('E_NO_CRITERIA');
+    expect(result.stderr).toContain('#### Scenario:');
+    expect(result.stderr).toContain('Nothing was checked');
+  });
+
   it('exits 2 on a spec root holding no spec', async () => {
     const result = await cli('check', '--cwd', fixture('empty-specs'));
     expect(result.code).toBe(2);

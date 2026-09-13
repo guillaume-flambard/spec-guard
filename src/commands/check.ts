@@ -12,7 +12,7 @@ import {
   type BaselineCandidate,
   type BaselineDiff,
 } from '../baseline.js';
-import { buildCriteria } from '../criteria.js';
+import { assertRecognizedScenarios, buildCriteria } from '../criteria.js';
 import { discover, type DiscoveryOptions } from '../discovery.js';
 import { EXIT_GATE, EXIT_INPUT, EXIT_OK, OpenSpecGuardError } from '../errors.js';
 import {
@@ -85,6 +85,8 @@ export async function runCheck(input: CheckInput): Promise<CheckOutcome> {
       parseSpec(await readFile(spec.absolutePath, 'utf8'), spec.file, spec.capability),
     ),
   );
+
+  assertRecognizedScenarios(specs);
 
   const { criteria, errors, removedScenarioCount } = buildCriteria(specs);
   // Annotation problems are configuration errors. We surface all of them at
