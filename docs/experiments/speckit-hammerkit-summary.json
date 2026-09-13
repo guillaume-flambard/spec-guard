@@ -1,0 +1,75 @@
+{
+  "corpus": "no0dles/hammerkit",
+  "revision": "41f331b24cb33edab98962a02f0c585fd04b6fa9",
+  "tool": "openspec-guard@0.2.0",
+  "scope": "Numbered acceptance scenarios only; full G/W/T text as matching input",
+  "specFiles": 27,
+  "scenarios": 166,
+  "testFiles": 114,
+  "testTitles": 462,
+  "diagnostics": {
+    "parseWarnings": 0,
+    "staleBaselineEntries": 0,
+    "unparsedFiles": 0,
+    "dynamicTitles": 89
+  },
+  "native": {
+    "criteria": 0,
+    "exitCode": 0
+  },
+  "before": {
+    "total": 166,
+    "pass": 0,
+    "uncertain": 21,
+    "fail": 145,
+    "skip": 0,
+    "baselined": 0,
+    "passBySelector": 0,
+    "passByHeuristic": 0,
+    "failNoCandidate": 0,
+    "failLowSimilarity": 145,
+    "failSelectorUnmatched": 0,
+    "failSelectorAmbiguous": 0,
+    "failSkippedTest": 0,
+    "failMissingSelector": 0
+  },
+  "after": {
+    "total": 166,
+    "pass": 1,
+    "uncertain": 20,
+    "fail": 145,
+    "skip": 0,
+    "baselined": 0,
+    "passBySelector": 1,
+    "passByHeuristic": 0,
+    "failNoCandidate": 0,
+    "failLowSimilarity": 145,
+    "failSelectorUnmatched": 0,
+    "failSelectorAmbiguous": 0,
+    "failSkippedTest": 0,
+    "failMissingSelector": 0
+  },
+  "selected": {
+    "source": "specs/service/kubernetes/spec.md",
+    "line": 41,
+    "story": "User Story 2 - Overriding the namespace or context per service (Priority: P2)",
+    "ordinal": 2,
+    "text": "**Given** a service declares neither `namespace`, `context`, nor `kubeconfig`, **When** it is activated, **Then** it inherits all three from the selected environment.",
+    "generatedFile": ".guard-probe-specs/service/kubernetes/spec.md",
+    "generatedLine": 31,
+    "selector": "appendWorkService (kubernetes service env inheritance) > inherits context, kubeconfig and namespace from the selected environment",
+    "test": {
+      "fullName": "appendWorkService (kubernetes service env inheritance) > inherits context, kubeconfig and namespace from the selected environment",
+      "file": "src/planner/utils/append-work-service.spec.ts",
+      "line": 50,
+      "skipped": false
+    },
+    "beforeScore": 0.5
+  },
+  "checks": {
+    "repeatedBytesIdentical": true,
+    "otherVerdictsUnchanged": true,
+    "baselineWithLinkExit": 0,
+    "brokenLinkExit": 1
+  }
+}
