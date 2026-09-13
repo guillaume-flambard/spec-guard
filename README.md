@@ -86,6 +86,10 @@ This is an independent example, not an adoption or endorsement by SEEK.
 
 [Read the cases and reproduce the result](docs/demo-sku.md).
 
+An experimental [Spec Kit feasibility report](docs/experiments/speckit-hammerkit.md)
+measures the same engine through a temporary conversion. Native Spec Kit support
+is not available in the published package.
+
 ## How links work
 
 The annotation is an OpenSpec Guard convention, carried in an HTML comment.
