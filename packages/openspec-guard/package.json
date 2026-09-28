@@ -45,8 +45,8 @@
     "postpack": "node scripts/restore-package-json.mjs",
     "build:lib": "node scripts/build-lib.mjs",
     "build:action": "node scripts/build-action.mjs",
-    "spec:check": "node dist/cli.js check --tests \"src/**/*.test.ts\" --tests \"tests/*.test.ts\" --runner vitest --fail-on fail,uncertain",
-    "spec:link": "node dist/cli.js link --tests \"src/**/*.test.ts\" --tests \"tests/*.test.ts\" --runner vitest"
+    "spec:check": "node dist/cli.js check --specs openspec/specs --code .. --tests \"openspec-guard/src/**/*.test.ts\" --tests \"openspec-guard/tests/*.test.ts\" --tests \"core/src/**/*.test.ts\" --runner vitest --fail-on fail,uncertain",
+    "spec:link": "node dist/cli.js link --specs openspec/specs --code .. --tests \"openspec-guard/src/**/*.test.ts\" --tests \"openspec-guard/tests/*.test.ts\" --tests \"core/src/**/*.test.ts\" --runner vitest"
   },
   "dependencies": {
     "typescript": "^5.9.3"

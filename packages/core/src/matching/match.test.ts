@@ -29,8 +29,9 @@ function criterion(partial: Partial<Criterion> & { scenario: string }): Criterio
     requirement: 'R',
     file: 'openspec/specs/demo/spec.md',
     line: 1,
-    operation: 'base',
     isNamedScenario: true,
+    claimedDone: null,
+    meta: { operation: 'base' },
     annotation: null,
     ...partial,
   };

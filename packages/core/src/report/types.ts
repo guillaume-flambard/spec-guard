@@ -1,4 +1,4 @@
-import type { DeltaOperation, MatchReason, Verdict } from '../types.js';
+import type { MatchReason, Verdict } from '../types.js';
 import type { Summary } from '../verdict.js';
 
 /**
@@ -38,8 +38,13 @@ export interface CriterionResult {
   capability: string;
   requirement: string;
   scenario: string;
-  operation: DeltaOperation;
-  /** `false` when the source heading was not `#### Scenario: ...`. */
+  /**
+   * The format's delta vocabulary, carried through from adapter metadata.
+   * Schema version 2 replaces it with the whole `meta` object; until then it
+   * stays here so the document keeps the same bytes.
+   */
+  operation: string;
+  /** `false` when the heading did not carry the format's expected prefix. */
   namedScenario: boolean;
   /** True when a baseline is holding this criterion back from the gate. */
   baselined: boolean;
@@ -57,7 +62,10 @@ export interface ReportInput {
   specFileCount: number;
   testFileCount: number;
   testTitleCount: number;
-  /** Scenarios under a REMOVED delta section: counted, never checked. */
+  /**
+   * Criteria the adapter marked excluded: counted, never checked. Schema
+   * version 2 renames the field to `excludedCount`.
+   */
   removedScenarioCount: number;
 }
 

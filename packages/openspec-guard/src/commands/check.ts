@@ -4,7 +4,6 @@ import {
   buildBaseline,
   buildCriteria,
   buildTestIndex,
-  DEFAULT_BASELINE_PATH,
   DEFAULT_MIN_SHARED_TERMS,
   DEFAULT_PASS_THRESHOLD,
   DEFAULT_UNCERTAIN_THRESHOLD,
@@ -32,6 +31,7 @@ import {
   type CriterionOutcome,
   type CriterionResult,
   type DiscoveryOptions,
+  type ParsedDocument,
   type Report,
   type Runner,
   type TestRef,
@@ -39,7 +39,7 @@ import {
   type Verdict,
 } from '@spec-guard/core';
 
-import { parseSpec } from '../openspec/parse.js';
+import { openspecFormat } from '../openspec/format.js';
 import { VERSION } from '../version.js';
 
 /**
@@ -89,21 +89,28 @@ function compareResults(left: CriterionResult, right: CriterionResult): number {
 }
 
 export async function runCheck(input: CheckInput): Promise<CheckOutcome> {
-  const discovery = await discover(input);
+  // The composition root is where the format is chosen. Nothing below here
+  // knows that a spec is OpenSpec markdown.
+  const format = openspecFormat;
+  const discovery = await discover(input, format);
 
-  const specs = await Promise.all(
+  const documents: ParsedDocument[] = await Promise.all(
     discovery.specs.map(async (spec) =>
-      parseSpec(await readFile(spec.absolutePath, 'utf8'), spec.file, spec.capability),
+      format.parse({
+        source: await readFile(spec.absolutePath, 'utf8'),
+        file: spec.file,
+        capability: spec.capability,
+      }),
     ),
   );
 
-  const { criteria, errors, removedScenarioCount } = buildCriteria(specs);
+  const { criteria, errors, excludedCount } = buildCriteria(documents, format);
   // Annotation problems are configuration errors. We surface all of them at
   // once rather than reporting a run built on a spec we could not read.
   if (errors.length > 0) throw new AnnotationErrors(errors);
 
   const baselinePath =
-    input.updateBaseline === true ? (input.baseline ?? DEFAULT_BASELINE_PATH) : input.baseline;
+    input.updateBaseline === true ? (input.baseline ?? format.defaultBaselinePath) : input.baseline;
   // When updating, an absent file is the normal first case, so it is read
   // leniently. When checking, a missing baseline is an error: a typo in the
   // path would otherwise un-suppress everything and fail a build silently.
@@ -162,7 +169,9 @@ export async function runCheck(input: CheckInput): Promise<CheckOutcome> {
       capability: criterion.capability,
       requirement: criterion.requirement,
       scenario: criterion.scenario,
-      operation: criterion.operation,
+      // Adapter metadata, passed through unread. Schema version 2 replaces
+      // this field with the whole `meta` object.
+      operation: criterion.meta.operation ?? '',
       namedScenario: criterion.isNamedScenario,
       baselined: suppressed,
       source: { file: criterion.file, line: criterion.line },
@@ -205,7 +214,7 @@ export async function runCheck(input: CheckInput): Promise<CheckOutcome> {
       specFileCount: discovery.specs.length,
       testFileCount: discovery.testFiles.length,
       testTitleCount: titles.length,
-      removedScenarioCount,
+      removedScenarioCount: excludedCount,
     },
     options: {
       baseline: baselinePath ?? null,
@@ -222,9 +231,9 @@ export async function runCheck(input: CheckInput): Promise<CheckOutcome> {
     gates,
     results,
     diagnostics: {
-      parseWarnings: specs.flatMap((spec) =>
-        spec.warnings.map((warning) => ({
-          file: spec.file,
+      parseWarnings: documents.flatMap((document) =>
+        document.warnings.map((warning) => ({
+          file: document.file,
           line: warning.line,
           code: warning.code,
           message: warning.message,
@@ -241,8 +250,8 @@ export async function runCheck(input: CheckInput): Promise<CheckOutcome> {
   };
 
   if (input.updateBaseline === true) {
-    const next = buildBaseline(candidates);
-    const target = input.baseline ?? DEFAULT_BASELINE_PATH;
+    const next = buildBaseline(candidates, format);
+    const target = input.baseline ?? format.defaultBaselinePath;
     await writeBaseline(cwdOf(input), target, next);
     // Writing a baseline is a maintenance action, not a check, so it never
     // fails a gate: the point is to record reality, whatever it is.

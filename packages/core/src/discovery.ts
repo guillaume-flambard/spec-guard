@@ -3,6 +3,7 @@ import { readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 import { SpecGuardError } from './errors.js';
+import type { SpecLayout } from './format.js';
 
 /**
  * Everything that touches the filesystem lives here: root resolution, tree
@@ -45,9 +46,9 @@ export interface DiscoveryOptions {
   codePath?: string | undefined;
   /** `--tests`, defaults to `DEFAULT_TEST_GLOBS`. */
   testGlobs?: readonly string[] | undefined;
-  /** `--include-changes`: also read delta specs under `openspec/changes`. */
+  /** `--include-changes`: also read the format's in-flight change deltas. */
   includeChanges?: boolean | undefined;
-  /** `--allow-empty`: tolerate a spec root that holds no `spec.md`. */
+  /** `--allow-empty`: tolerate a spec root that holds no spec file. */
   allowEmpty?: boolean | undefined;
 }
 
@@ -165,7 +166,15 @@ async function walk(root: string, onFile: (absolutePath: string) => void): Promi
   }
 }
 
-function resolveSpecRoot(cwd: string, specsPath: string | undefined): string {
+/**
+ * Where the specs are.
+ *
+ * The candidate roots come from the format, never from a literal here: a
+ * second format keeps its own layout without this module learning about it.
+ * Two roots that both exist is refused rather than guessed, because guessing
+ * wrong means checking the wrong half of a repository and saying nothing.
+ */
+function resolveSpecRoot(cwd: string, specsPath: string | undefined, layout: SpecLayout): string {
   if (specsPath !== undefined) {
     const explicit = path.resolve(cwd, specsPath);
     if (!existsSync(explicit)) {
@@ -177,22 +186,26 @@ function resolveSpecRoot(cwd: string, specsPath: string | undefined): string {
     return explicit;
   }
 
-  const openspec = path.join(cwd, 'openspec', 'specs');
-  const bare = path.join(cwd, 'specs');
-  const hasOpenspec = existsSync(openspec);
-  const hasBare = existsSync(bare);
+  const roots = layout.defaultSpecRoots;
+  const present = roots.filter((root) => existsSync(path.resolve(cwd, ...root.split('/'))));
 
-  if (hasOpenspec && hasBare) {
+  if (present.length > 1) {
+    const named =
+      present.length === 2
+        ? `Both ${present.join(' and ')} exist`
+        : `${present.join(', ')} all exist`;
     throw new SpecGuardError(
       'E_SPECS_AMBIGUOUS',
-      'Both openspec/specs and specs exist. Pass --specs to say which one holds the specs.',
+      `${named}. Pass --specs to say which one holds the specs.`,
     );
   }
-  if (hasOpenspec) return openspec;
-  if (hasBare) return bare;
+
+  const only = present[0];
+  if (only !== undefined) return path.resolve(cwd, ...only.split('/'));
+
   throw new SpecGuardError(
     'E_SPECS_NOT_FOUND',
-    'No spec directory found. Expected openspec/specs or specs, or pass --specs.',
+    `No spec directory found. Expected ${roots.join(' or ')}, or pass --specs.`,
   );
 }
 
@@ -202,14 +215,14 @@ function capabilityOf(root: string, absolutePath: string, prefix: string): strin
   return parts.join('/');
 }
 
-export async function discover(options: DiscoveryOptions): Promise<Discovery> {
+export async function discover(options: DiscoveryOptions, layout: SpecLayout): Promise<Discovery> {
   const cwd = path.resolve(options.cwd);
-  const specRoot = resolveSpecRoot(cwd, options.specsPath);
+  const specRoot = resolveSpecRoot(cwd, options.specsPath, layout);
 
   const specs: DiscoveredSpec[] = [];
   const collectSpecs = async (root: string, prefix: string): Promise<void> => {
     await walk(root, (absolutePath) => {
-      if (path.basename(absolutePath) !== 'spec.md') return;
+      if (path.basename(absolutePath) !== layout.specFileName) return;
       specs.push({
         absolutePath,
         file: toRelativePosix(cwd, absolutePath),
@@ -220,10 +233,12 @@ export async function discover(options: DiscoveryOptions): Promise<Discovery> {
 
   await collectSpecs(specRoot, '');
 
-  if (options.includeChanges === true) {
-    // Changes live beside the specs, not inside them. Archived changes are
-    // skipped: they describe work already folded into the base specs.
-    const changesRoot = path.join(path.dirname(specRoot), 'changes');
+  if (options.includeChanges === true && layout.changesRoot !== null) {
+    // Changes live beside the specs, not inside them, so only the last segment
+    // of the format's declared path is used: a repository that moved its specs
+    // with --specs keeps its deltas beside them. Archived changes are skipped:
+    // they describe work already folded into the base specs.
+    const changesRoot = path.join(path.dirname(specRoot), path.basename(layout.changesRoot));
     if (await isDirectory(changesRoot)) {
       const entries = await readdir(changesRoot, { withFileTypes: true });
       for (const entry of entries) {
@@ -238,7 +253,7 @@ export async function discover(options: DiscoveryOptions): Promise<Discovery> {
   if (specs.length === 0 && options.allowEmpty !== true) {
     throw new SpecGuardError(
       'E_SPECS_EMPTY',
-      `${toRelativePosix(cwd, specRoot)} contains no spec.md. ` +
+      `${toRelativePosix(cwd, specRoot)} contains no ${layout.specFileName}. ` +
         'Reporting success on zero criteria is the worst failure mode for a gate; ' +
         'pass --allow-empty if that is genuinely what you want.',
     );

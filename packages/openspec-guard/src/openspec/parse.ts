@@ -1,11 +1,4 @@
-import {
-  type AnnotationLine,
-  type DeltaOperation,
-  type ParsedRequirement,
-  type ParsedScenario,
-  type ParsedSpec,
-  type ParseWarning,
-} from '@spec-guard/core';
+import { type AnnotationLine, type ParseWarning } from '@spec-guard/core';
 
 /**
  * OpenSpec markdown parser. Pure function over a string, no I/O.
@@ -21,11 +14,44 @@ import {
  * Structural problems produce warnings, not errors: a spec that is odd is
  * still worth checking. Only annotation problems stop a run.
  *
- * `ParsedScenario`, `ParsedRequirement`, `ParseWarning` and `ParsedSpec` are
- * defined in the core: they are the contract between any spec format's
- * parser and the format-neutral criteria builder, not something specific to
- * OpenSpec markdown.
+ * The tree below is OpenSpec's own shape and lives here, not in the core: the
+ * core consumes the flat `ParsedDocument` that `format.ts` derives from it.
  */
+
+/** Operation carried by the `##` section that contains the requirement. */
+export type DeltaOperation = 'base' | 'added' | 'modified' | 'removed' | 'renamed';
+
+export interface ParsedScenario {
+  /** Raw text after the `####` marker. */
+  heading: string;
+  /** Heading without the `Scenario:` prefix when there is one. */
+  name: string;
+  isNamedScenario: boolean;
+  /** 1-based line of the scenario heading. */
+  line: number;
+  /** Body lines, heading excluded, trailing blank lines trimmed. */
+  bodyLines: string[];
+  /** Same body lines, carrying their 1-based line numbers. */
+  annotationLines: AnnotationLine[];
+}
+
+export interface ParsedRequirement {
+  name: string;
+  /** 1-based line of the requirement heading. */
+  line: number;
+  operation: DeltaOperation;
+  /** Normative prose between the requirement heading and the first scenario. */
+  statement: string;
+  scenarios: ParsedScenario[];
+}
+
+export interface ParsedSpec {
+  /** Path relative to cwd, POSIX separators. */
+  file: string;
+  capability: string;
+  requirements: ParsedRequirement[];
+  warnings: ParseWarning[];
+}
 
 const SECTION_HEADING = /^##\s+(.+?)\s*$/;
 const REQUIREMENT_HEADING = /^###\s+Requirement\s*:\s*(.+?)\s*$/;

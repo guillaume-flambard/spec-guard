@@ -2,6 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { SpecGuardError } from './errors.js';
+import type { ToolIdentity } from './format.js';
 import type { MatchReason, Verdict } from './types.js';
 
 /**
@@ -24,7 +25,6 @@ import type { MatchReason, Verdict } from './types.js';
  *    its test.
  */
 
-export const DEFAULT_BASELINE_PATH = '.openspec-guard-baseline.json';
 export const BASELINE_SCHEMA_VERSION = 1;
 
 export interface BaselineEntry {
@@ -146,7 +146,10 @@ function compareEntries(left: BaselineEntry, right: BaselineEntry): number {
 }
 
 /** Everything currently uncovered becomes the new frozen debt. */
-export function buildBaseline(candidates: readonly BaselineCandidate[]): BaselineFile {
+export function buildBaseline(
+  candidates: readonly BaselineCandidate[],
+  format: ToolIdentity,
+): BaselineFile {
   const entries = candidates
     .filter((candidate) => candidate.verdict !== 'pass' && candidate.verdict !== 'skip')
     .map((candidate) => ({
@@ -159,7 +162,7 @@ export function buildBaseline(candidates: readonly BaselineCandidate[]): Baselin
     }))
     .sort(compareEntries);
 
-  return { schemaVersion: BASELINE_SCHEMA_VERSION, tool: 'openspec-guard', entries };
+  return { schemaVersion: BASELINE_SCHEMA_VERSION, tool: format.toolName, entries };
 }
 
 export async function writeBaseline(

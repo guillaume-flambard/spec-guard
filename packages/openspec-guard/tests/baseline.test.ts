@@ -5,15 +5,10 @@ import { fileURLToPath } from 'node:url';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import {
-  DEFAULT_BASELINE_PATH,
-  EXIT_GATE,
-  EXIT_OK,
-  isOpenSpecGuardError,
-  type BaselineFile,
-} from '@spec-guard/core';
+import { EXIT_GATE, EXIT_OK, isOpenSpecGuardError, type BaselineFile } from '@spec-guard/core';
 
 import { runCheck, type CheckInput } from '../src/commands/check.js';
+import { DEFAULT_BASELINE_PATH } from '../src/index.js';
 
 const FIXTURES = path.resolve(fileURLToPath(new URL('./fixtures', import.meta.url)));
 

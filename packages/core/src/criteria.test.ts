@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import { criterionId, disambiguateIds, normalizeScenarioText } from './criteria.js';
+import type { AnnotationVocabulary } from './format.js';
+
+const FORMAT: AnnotationVocabulary = {
+  annotationPrefix: 'openspec-guard',
+  acceptedPrefixes: ['openspec-guard', 'spec-guard'],
+};
 
 const HEADING = '#### Scenario: Anonymous visitor';
 const BODY = [
@@ -16,37 +22,51 @@ function id(
   file = 'openspec/specs/a/spec.md',
   req = 'R',
 ) {
-  return criterionId(file, req, normalizeScenarioText(heading, body));
+  return criterionId(file, req, normalizeScenarioText(heading, body, FORMAT));
 }
 
 describe('normalizeScenarioText', () => {
   it('strips openspec-guard comments from the canonical text', () => {
-    const withAnnotation = normalizeScenarioText(HEADING, [
-      '<!-- openspec-guard:test="shows the login page" -->',
-      ...BODY,
-    ]);
-    expect(withAnnotation).toBe(normalizeScenarioText(HEADING, BODY));
+    const withAnnotation = normalizeScenarioText(
+      HEADING,
+      ['<!-- openspec-guard:test="shows the login page" -->', ...BODY],
+      FORMAT,
+    );
+    expect(withAnnotation).toBe(normalizeScenarioText(HEADING, BODY, FORMAT));
   });
 
   it('cuts trailing whitespace and trailing blank lines', () => {
-    expect(normalizeScenarioText('#### Scenario: A   ', ['- **WHEN** x  ', '', ''])).toBe(
+    expect(normalizeScenarioText('#### Scenario: A   ', ['- **WHEN** x  ', '', ''], FORMAT)).toBe(
       '#### Scenario: A\n- **WHEN** x',
     );
   });
 
   it('collapses consecutive blank lines to one', () => {
-    expect(normalizeScenarioText('#### A', ['', '', '- x', '', '', '- y'])).toBe(
+    expect(normalizeScenarioText('#### A', ['', '', '- x', '', '', '- y'], FORMAT)).toBe(
       '#### A\n\n- x\n\n- y',
     );
   });
 
   it('preserves accents and normalizes to NFC', () => {
     const decomposed = 'Scenario: Création'; // e + combining acute
-    expect(normalizeScenarioText(`#### ${decomposed}`, [])).toBe('#### Scenario: Création');
+    expect(normalizeScenarioText(`#### ${decomposed}`, [], FORMAT)).toBe('#### Scenario: Création');
   });
 });
 
 describe('criterionId', () => {
+  /**
+   * The one value in this repository that must never move.
+   *
+   * Every baseline file in every repository using this tool keys on a
+   * criterion id. Refactoring the normalizer, the hash input or the heading
+   * the adapter reports would silently unfreeze everyone's frozen debt, and
+   * nothing else would go red. This hex was captured before the format seam
+   * was cut and is asserted literally on purpose.
+   */
+  it('still hashes a fixed criterion to the byte it hashed before the format seam', () => {
+    expect(id(HEADING, BODY)).toBe('sg_6cc16bd48a3a772a');
+  });
+
   it('has the shape sg_ plus 16 hex characters', () => {
     expect(id(HEADING, BODY)).toMatch(/^sg_[0-9a-f]{16}$/);
   });

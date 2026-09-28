@@ -1,8 +1,5 @@
 /** Types shared across modules. No logic here. */
 
-/** Operation carried by the `##` section that contains the requirement. */
-export type DeltaOperation = 'base' | 'added' | 'modified' | 'removed' | 'renamed';
-
 /**
  * A SpecGuard extension, never syntax the underlying spec format defines
  * itself: an HTML comment placed directly under the scenario heading.
@@ -18,63 +15,34 @@ export interface AnnotationLine {
 }
 
 /**
- * The contract between a format-specific parser and the format-neutral
- * criteria builder. A parser for any spec format turns its own markup into
- * this shape; `buildCriteria` never reads the original markup itself.
+ * A problem found while parsing a spec, worth reporting but not worth
+ * stopping for. Every format's parser produces these; only annotation errors
+ * stop a run.
  */
-export interface ParsedScenario {
-  /** Raw text after the scenario marker, however the format spells it. */
-  heading: string;
-  /** Heading without the `Scenario:` prefix when there is one. */
-  name: string;
-  isNamedScenario: boolean;
-  /** 1-based line of the scenario heading. */
-  line: number;
-  /** Body lines, heading excluded, trailing blank lines trimmed. */
-  bodyLines: string[];
-  /** Same body lines, carrying their 1-based line numbers. */
-  annotationLines: AnnotationLine[];
-}
-
-export interface ParsedRequirement {
-  name: string;
-  /** 1-based line of the requirement heading. */
-  line: number;
-  operation: DeltaOperation;
-  /** Normative prose between the requirement heading and the first scenario. */
-  statement: string;
-  scenarios: ParsedScenario[];
-}
-
 export interface ParseWarning {
   code: string;
   message: string;
   line: number;
 }
 
-export interface ParsedSpec {
-  /** Path relative to cwd, POSIX separators. */
-  file: string;
-  capability: string;
-  requirements: ParsedRequirement[];
-  warnings: ParseWarning[];
-}
-
-/** A spec scenario, turned into a checkable criterion. */
+/** A parsed criterion, turned into a checkable one. */
 export interface Criterion {
   /** `sg_` plus 16 hex characters. See `criteria.ts` for the derivation. */
   id: string;
-  /** Path segments between the spec root and the directory holding `spec.md`. */
+  /** Path segments between the spec root and the file's directory. */
   capability: string;
   requirement: string;
   scenario: string;
   /** Path relative to cwd, POSIX separators. */
   file: string;
-  /** 1-based line of the `####` heading. */
+  /** 1-based line of the criterion heading. */
   line: number;
-  operation: DeltaOperation;
-  /** `false` when the `####` heading was not prefixed with `Scenario:`. */
+  /** `false` when the heading did not carry the format's expected prefix. */
   isNamedScenario: boolean;
+  /** Whether the format lets an author claim this done, and whether they did. */
+  claimedDone: boolean | null;
+  /** Opaque adapter metadata. The core never reads it. */
+  meta: Readonly<Record<string, string>>;
   annotation: Annotation | null;
 }
 

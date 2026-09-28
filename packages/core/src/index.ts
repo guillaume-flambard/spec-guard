@@ -1,6 +1,7 @@
 /**
  * The format-neutral engine. Everything here is independent of which spec
- * format produced the criteria.
+ * format produced the criteria: what a format spells, where it keeps its
+ * files and what this binary is called all arrive on a `SpecFormat`.
  *
  * The surface is wider than what `openspec-guard` used to publish to npm:
  * `commands/check.ts` and `commands/link.ts` stay behind as the composition
@@ -16,6 +17,17 @@ export {
   normalizeScenarioText,
   type BuildCriteriaResult,
 } from './criteria.js';
+export type {
+  AnnotationTarget,
+  AnnotationVocabulary,
+  ParsedCriterion,
+  ParsedDocument,
+  ParseInput,
+  SpecFormat,
+  SpecLayout,
+  ToolIdentity,
+} from './format.js';
+export { isAnnotationComment, parseAnnotations, prefixPattern } from './annotations.js';
 export {
   discover,
   toRelativePosix,
@@ -44,7 +56,6 @@ export {
   loadBaseline,
   staleEntries,
   writeBaseline,
-  DEFAULT_BASELINE_PATH,
   BASELINE_SCHEMA_VERSION,
   type Baseline,
   type BaselineCandidate,
@@ -84,11 +95,7 @@ export {
   type AnnotationLine,
   type Candidate,
   type Criterion,
-  type DeltaOperation,
   type MatchReason,
-  type ParsedRequirement,
-  type ParsedScenario,
-  type ParsedSpec,
   type ParseWarning,
   type TestTitle,
   type Verdict,

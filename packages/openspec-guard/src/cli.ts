@@ -18,6 +18,7 @@ import {
 import { AnnotationErrors, runCheck, type CheckInput } from './commands/check.js';
 import { runLink } from './commands/link.js';
 import { createTerminalAsk } from './link/prompt.js';
+import { openspecFormat } from './openspec/format.js';
 import { VERSION } from './version.js';
 
 /**
@@ -372,11 +373,15 @@ export async function main(argv: readonly string[]): Promise<void> {
       process.stdout.write(renderJson(report));
     } else {
       process.stdout.write(
-        renderTerminal(report, {
-          color: command.color,
-          verbose: command.verbose,
-          maxRowsPerGroup: command.maxRows,
-        }),
+        renderTerminal(
+          report,
+          {
+            color: command.color,
+            verbose: command.verbose,
+            maxRowsPerGroup: command.maxRows,
+          },
+          openspecFormat,
+        ),
       );
     }
 

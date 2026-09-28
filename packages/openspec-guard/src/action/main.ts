@@ -12,6 +12,7 @@ import {
 } from '@spec-guard/core';
 
 import { AnnotationErrors, runCheck } from '../commands/check.js';
+import { openspecFormat } from '../openspec/format.js';
 import { annotationsFor, outputsFor, renderOutputs, summaryFor } from './annotate.js';
 import { readConfig, type Env } from './inputs.js';
 
@@ -57,7 +58,7 @@ export async function runAction(io: ActionIo = realIo): Promise<number> {
     io.log(
       config.format === 'json'
         ? renderJson(report)
-        : renderTerminal(report, { ...DEFAULT_TERMINAL_OPTIONS, color: false }),
+        : renderTerminal(report, { ...DEFAULT_TERMINAL_OPTIONS, color: false }, openspecFormat),
     );
 
     if (baselineUpdate) {

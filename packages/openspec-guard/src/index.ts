@@ -26,7 +26,6 @@ export {
   loadBaseline,
   staleEntries,
   writeBaseline,
-  DEFAULT_BASELINE_PATH,
   BASELINE_SCHEMA_VERSION,
   type Baseline,
   type BaselineEntry,
@@ -50,4 +49,14 @@ export {
   type Verdict,
   type Summary,
 } from '@spec-guard/core';
+import { openspecFormat } from './openspec/format.js';
+
+export { openspecFormat, parseDocument } from './openspec/format.js';
 export { VERSION } from './version.js';
+
+/**
+ * Where this binary keeps its frozen debt by default. It is the OpenSpec
+ * format's own value now, not a constant in the shared engine: a second format
+ * running on that engine writes its own file, at its own path.
+ */
+export const DEFAULT_BASELINE_PATH: string = openspecFormat.defaultBaselinePath;

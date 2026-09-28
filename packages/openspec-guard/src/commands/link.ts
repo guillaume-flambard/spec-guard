@@ -21,7 +21,7 @@ import {
 } from '@spec-guard/core';
 
 import { applyEdits, nonTestableAnnotation, testAnnotation, type LinkEdit } from '../link/edit.js';
-import { parseSpec } from '../openspec/parse.js';
+import { openspecFormat } from '../openspec/format.js';
 import { AnnotationErrors } from './check.js';
 
 /**
@@ -98,18 +98,19 @@ export interface LinkResult {
 const DEFAULT_MAX_CANDIDATES = 5;
 
 export async function runLink(input: LinkInput): Promise<LinkResult> {
-  const discovery = await discover(input);
+  const format = openspecFormat;
+  const discovery = await discover(input, format);
 
   const sources = new Map<string, string>();
-  const specs = await Promise.all(
+  const documents = await Promise.all(
     discovery.specs.map(async (spec) => {
       const source = await readFile(spec.absolutePath, 'utf8');
       sources.set(spec.file, source);
-      return parseSpec(source, spec.file, spec.capability);
+      return format.parse({ source, file: spec.file, capability: spec.capability });
     }),
   );
 
-  const { criteria, errors } = buildCriteria(specs);
+  const { criteria, errors } = buildCriteria(documents, format);
   if (errors.length > 0) throw new AnnotationErrors(errors);
 
   // Detection is not used to branch, only to fail clearly on a repository with

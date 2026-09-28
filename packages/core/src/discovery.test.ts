@@ -5,6 +5,14 @@ import { describe, expect, it } from 'vitest';
 
 import { discover, globToRegExp, toRelativePosix } from './discovery.js';
 import { isSpecGuardError } from './errors.js';
+import type { SpecLayout } from './format.js';
+
+/** The OpenSpec layout, the one the fixtures under `tests/fixtures` use. */
+const LAYOUT: SpecLayout = {
+  defaultSpecRoots: ['openspec/specs', 'specs'],
+  specFileName: 'spec.md',
+  changesRoot: 'openspec/changes',
+};
 
 const FIXTURES = path.resolve(fileURLToPath(new URL('../tests/fixtures', import.meta.url)));
 
@@ -44,7 +52,7 @@ describe('globToRegExp', () => {
 
 describe('discover', () => {
   it('walks the spec root at any depth and derives the capability from the path', async () => {
-    const result = await discover({ cwd: fixture('discovery') });
+    const result = await discover({ cwd: fixture('discovery') }, LAYOUT);
     expect(result.specs.map((spec) => spec.capability)).toEqual(['account/settings', 'account']);
     expect(result.specs.map((spec) => spec.file)).toEqual([
       'openspec/specs/account/settings/spec.md',
@@ -53,17 +61,17 @@ describe('discover', () => {
   });
 
   it('never reads a spec living under an excluded directory', async () => {
-    const result = await discover({ cwd: fixture('discovery') });
+    const result = await discover({ cwd: fixture('discovery') }, LAYOUT);
     expect(result.specs.every((spec) => !spec.file.includes('node_modules'))).toBe(true);
   });
 
   it('ignores changes by default', async () => {
-    const result = await discover({ cwd: fixture('discovery') });
+    const result = await discover({ cwd: fixture('discovery') }, LAYOUT);
     expect(result.specs.some((spec) => spec.file.includes('/changes/'))).toBe(false);
   });
 
   it('reads change deltas with --include-changes, but never the archive', async () => {
-    const result = await discover({ cwd: fixture('discovery'), includeChanges: true });
+    const result = await discover({ cwd: fixture('discovery'), includeChanges: true }, LAYOUT);
     const changes = result.specs.filter((spec) => spec.capability.startsWith('changes/'));
     expect(changes.map((spec) => spec.capability)).toEqual([
       'changes/add-search/specs/discovery/location',
@@ -72,7 +80,7 @@ describe('discover', () => {
   });
 
   it('collects test files by the default globs, pruning build output', async () => {
-    const result = await discover({ cwd: fixture('discovery') });
+    const result = await discover({ cwd: fixture('discovery') }, LAYOUT);
     const relative = result.testFiles.map((file) => toRelativePosix(fixture('discovery'), file));
     expect(relative).toEqual([
       'e2e/journey.spec.ts',
@@ -82,44 +90,52 @@ describe('discover', () => {
   });
 
   it('honours an explicit --tests glob', async () => {
-    const result = await discover({
-      cwd: fixture('discovery'),
-      testGlobs: ['src/**/*.test.ts'],
-    });
+    const result = await discover(
+      {
+        cwd: fixture('discovery'),
+        testGlobs: ['src/**/*.test.ts'],
+      },
+      LAYOUT,
+    );
     const relative = result.testFiles.map((file) => toRelativePosix(fixture('discovery'), file));
     expect(relative).toEqual(['src/names.test.ts']);
   });
 
   it('refuses a spec root that holds no spec.md', async () => {
-    expect(await codeOf(discover({ cwd: fixture('empty-specs') }))).toBe('E_SPECS_EMPTY');
+    expect(await codeOf(discover({ cwd: fixture('empty-specs') }, LAYOUT))).toBe('E_SPECS_EMPTY');
   });
 
   it('accepts an empty spec root with --allow-empty', async () => {
-    const result = await discover({ cwd: fixture('empty-specs'), allowEmpty: true });
+    const result = await discover({ cwd: fixture('empty-specs'), allowEmpty: true }, LAYOUT);
     expect(result.specs).toEqual([]);
   });
 
   it('refuses to guess when both openspec/specs and specs exist', async () => {
-    expect(await codeOf(discover({ cwd: fixture('ambiguous-roots') }))).toBe('E_SPECS_AMBIGUOUS');
+    expect(await codeOf(discover({ cwd: fixture('ambiguous-roots') }, LAYOUT))).toBe(
+      'E_SPECS_AMBIGUOUS',
+    );
   });
 
   it('resolves the ambiguity when --specs is given', async () => {
-    const result = await discover({
-      cwd: fixture('ambiguous-roots'),
-      specsPath: 'specs',
-      allowEmpty: true,
-    });
+    const result = await discover(
+      {
+        cwd: fixture('ambiguous-roots'),
+        specsPath: 'specs',
+        allowEmpty: true,
+      },
+      LAYOUT,
+    );
     expect(result.specRoot).toBe(path.join(fixture('ambiguous-roots'), 'specs'));
   });
 
   it('reports a missing spec root', async () => {
-    expect(await codeOf(discover({ cwd: fixture('discovery'), specsPath: 'nope' }))).toBe(
+    expect(await codeOf(discover({ cwd: fixture('discovery'), specsPath: 'nope' }, LAYOUT))).toBe(
       'E_SPECS_NOT_FOUND',
     );
   });
 
   it('reports a --code path that is not a directory', async () => {
-    expect(await codeOf(discover({ cwd: fixture('discovery'), codePath: 'nope' }))).toBe(
+    expect(await codeOf(discover({ cwd: fixture('discovery'), codePath: 'nope' }, LAYOUT))).toBe(
       'E_CODE_NOT_FOUND',
     );
   });

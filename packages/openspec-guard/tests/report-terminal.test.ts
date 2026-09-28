@@ -6,16 +6,23 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_TERMINAL_OPTIONS, renderTerminal, type TerminalOptions } from '@spec-guard/core';
 
 import { runCheck, type CheckInput } from '../src/commands/check.js';
+import { openspecFormat } from '../src/openspec/format.js';
 
 const FIXTURES = path.resolve(fileURLToPath(new URL('./fixtures', import.meta.url)));
 
+/**
+ * `renderTerminal` reads this binary's own name and its annotation prefix out
+ * of the format it is handed, so a caller that forgets the third argument got
+ * an `undefined` and a `TypeError` instead of a report. These are OpenSpec
+ * fixtures, so OpenSpec is the format.
+ */
 async function render(
   fixture: string,
   input: Partial<CheckInput> = {},
   options: Partial<TerminalOptions> = {},
 ): Promise<string> {
   const { report } = await runCheck({ cwd: path.join(FIXTURES, fixture), ...input });
-  return renderTerminal(report, { ...DEFAULT_TERMINAL_OPTIONS, ...options });
+  return renderTerminal(report, { ...DEFAULT_TERMINAL_OPTIONS, ...options }, openspecFormat);
 }
 
 describe('renderTerminal', () => {
@@ -90,7 +97,7 @@ describe('renderTerminal', () => {
       summary: { ...report.summary, baselined: 1 },
       results: report.results.map((result) => ({ ...result, baselined: true })),
     };
-    const output = renderTerminal(frozen, DEFAULT_TERMINAL_OPTIONS);
+    const output = renderTerminal(frozen, DEFAULT_TERMINAL_OPTIONS, openspecFormat);
     expect(output).not.toContain('no candidate test');
     expect(output).toContain('1 of them frozen by the baseline');
   });
@@ -104,7 +111,7 @@ describe('renderTerminal', () => {
         staleBaselineEntries: [{ id: 'sg_dead', scenario: 'gone', file: 'a/spec.md' }],
       },
     };
-    expect(renderTerminal(stale, DEFAULT_TERMINAL_OPTIONS)).toContain(
+    expect(renderTerminal(stale, DEFAULT_TERMINAL_OPTIONS, openspecFormat)).toContain(
       'Prune with --update-baseline',
     );
   });
@@ -128,7 +135,7 @@ describe('renderTerminal', () => {
         id: `sg_${String(index).padStart(16, '0')}`,
       })),
     };
-    const output = renderTerminal(heavy, DEFAULT_TERMINAL_OPTIONS);
+    const output = renderTerminal(heavy, DEFAULT_TERMINAL_OPTIONS, openspecFormat);
     expect(output).toContain('--update-baseline');
   });
 

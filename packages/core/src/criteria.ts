@@ -1,13 +1,14 @@
 import { createHash } from 'node:crypto';
 
-import { parseAnnotations } from './annotations.js';
+import { isAnnotationComment, parseAnnotations } from './annotations.js';
 import { SpecGuardError } from './errors.js';
-import type { Criterion, ParsedSpec } from './types.js';
+import type { AnnotationVocabulary, ParsedDocument } from './format.js';
+import type { Criterion } from './types.js';
 
 /**
  * Criterion identifier derivation.
  *
- * Two structural decisions, made once:
+ * Three structural decisions, made once:
  *
  * 1. The requirement name is part of the hash. Scenario titles are not unique,
  *    not even within a single file: real corpora contain several
@@ -16,17 +17,27 @@ import type { Criterion, ParsedSpec } from './types.js';
  * 2. The tool's own annotation comments are stripped from the normalized
  *    text. Otherwise adding a selector to a scenario would change its id, and
  *    any future baseline would be invalidated by the very first selector
- *    someone writes.
+ *    someone writes. What counts as one of our comments is decided by
+ *    `isAnnotationComment`, the same function the annotation parser uses: one
+ *    value, never two copies that could drift.
+ * 3. The heading is hashed exactly as the adapter reports it, marker included.
+ *    The core does not know what a heading looks like in any format, so it
+ *    never builds one.
+ *
+ * Every baseline file in every repository using this tool keys on the result.
+ * Nothing here moves without invalidating all of them.
  */
-
-const SPECGUARD_COMMENT = /^\s*<!--\s*openspec-guard:[\s\S]*?-->\s*$/;
 
 /**
- * Canonical text of a scenario: heading then body, annotations stripped,
+ * Canonical text of a criterion: heading then body, annotations stripped,
  * trailing whitespace cut, consecutive blank lines collapsed to one, NFC.
  */
-export function normalizeScenarioText(heading: string, bodyLines: readonly string[]): string {
-  const kept = bodyLines.filter((line) => !SPECGUARD_COMMENT.test(line));
+export function normalizeScenarioText(
+  heading: string,
+  bodyLines: readonly string[],
+  format: AnnotationVocabulary,
+): string {
+  const kept = bodyLines.filter((line) => !isAnnotationComment(line, format));
   const lines = [heading, ...kept].map((line) => line.replace(/[ \t]+$/, ''));
 
   const collapsed: string[] = [];
@@ -76,63 +87,66 @@ export interface BuildCriteriaResult {
   criteria: Criterion[];
   /** Annotation problems. Any of these stops the run with exit code 2. */
   errors: SpecGuardError[];
-  /** Scenarios under a `## REMOVED Requirements` section, counted not checked. */
-  removedScenarioCount: number;
+  /** Criteria the adapter marked excluded: counted, never checked. */
+  excludedCount: number;
 }
 
 /**
- * Turns parsed specs into criteria.
+ * Turns parsed documents into criteria.
  *
- * Scenarios under a `REMOVED` delta section are parsed and counted, but never
- * become criteria: we do not ask for a test covering what is being removed.
+ * A criterion the adapter marked `excluded` is parsed and counted, but never
+ * becomes a criterion: we do not ask for a test covering what is being
+ * removed. Which criteria those are is the format's decision, not ours.
  */
-export function buildCriteria(specs: readonly ParsedSpec[]): BuildCriteriaResult {
+export function buildCriteria(
+  documents: readonly ParsedDocument[],
+  format: AnnotationVocabulary,
+): BuildCriteriaResult {
   const draft: Omit<Criterion, 'id'>[] = [];
   const rawIds: string[] = [];
   const errors: SpecGuardError[] = [];
-  let removedScenarioCount = 0;
+  let excludedCount = 0;
 
-  for (const spec of specs) {
-    for (const requirement of spec.requirements) {
-      for (const scenario of requirement.scenarios) {
-        if (requirement.operation === 'removed') {
-          removedScenarioCount += 1;
-          continue;
-        }
-
-        const parsed = parseAnnotations(scenario.annotationLines);
-        for (const error of parsed.errors) {
-          errors.push(
-            new SpecGuardError(error.code, error.message, {
-              file: spec.file,
-              line: error.line,
-            }),
-          );
-        }
-
-        rawIds.push(
-          criterionId(
-            spec.file,
-            requirement.name,
-            normalizeScenarioText(`#### ${scenario.heading}`, scenario.bodyLines),
-          ),
-        );
-        draft.push({
-          capability: spec.capability,
-          requirement: requirement.name,
-          scenario: scenario.name,
-          file: spec.file,
-          line: scenario.line,
-          operation: requirement.operation,
-          isNamedScenario: scenario.isNamedScenario,
-          annotation: parsed.annotation,
-        });
+  for (const document of documents) {
+    for (const parsed of document.criteria) {
+      if (parsed.excluded) {
+        excludedCount += 1;
+        continue;
       }
+
+      const annotations = parseAnnotations(parsed.annotationLines, format);
+      for (const error of annotations.errors) {
+        errors.push(
+          new SpecGuardError(error.code, error.message, {
+            file: parsed.file,
+            line: error.line,
+          }),
+        );
+      }
+
+      rawIds.push(
+        criterionId(
+          parsed.file,
+          parsed.requirement,
+          normalizeScenarioText(parsed.heading, parsed.bodyLines, format),
+        ),
+      );
+      draft.push({
+        capability: parsed.capability,
+        requirement: parsed.requirement,
+        scenario: parsed.scenario,
+        file: parsed.file,
+        line: parsed.line,
+        isNamedScenario: parsed.isNamedScenario,
+        claimedDone: parsed.claimedDone,
+        meta: parsed.meta,
+        annotation: annotations.annotation,
+      });
     }
   }
 
   const ids = disambiguateIds(rawIds);
   const criteria = draft.map((entry, index) => ({ id: ids[index] as string, ...entry }));
 
-  return { criteria, errors, removedScenarioCount };
+  return { criteria, errors, excludedCount };
 }

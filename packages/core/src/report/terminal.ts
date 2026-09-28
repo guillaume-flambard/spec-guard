@@ -1,3 +1,4 @@
+import type { ToolIdentity } from '../format.js';
 import type { MatchReason } from '../types.js';
 import type { CriterionResult, Report } from './types.js';
 
@@ -103,7 +104,7 @@ function renderEvidence(evidence: readonly string[]): string {
 function headerOf(report: Report): string[] {
   const { input } = report;
   return [
-    `openspec-guard ${report.tool.version}`,
+    `${report.tool.name} ${report.tool.version}`,
     `  specs   ${input.specRoot}  (${input.specFileCount} files, ${report.summary.total} criteria)`,
     `  code    ${input.codeRoot}  (${input.testFileCount} test files, ` +
       `${input.testTitleCount} titles)`,
@@ -137,7 +138,7 @@ function summaryLine(report: Report): string {
  * the state the repository is actually in, and says nothing when there is
  * nothing to do.
  */
-function nextStep(report: Report): string[] {
+function nextStep(report: Report, format: ToolIdentity): string[] {
   const actionable = report.results.filter(
     (result) => !result.baselined && (result.verdict === 'fail' || result.verdict === 'uncertain'),
   );
@@ -163,8 +164,8 @@ function nextStep(report: Report): string[] {
       `Next: ${actionable.length} scenarios are uncovered. Freeze today's debt so a gate can`,
       'be turned on now, and pay it down afterwards:',
       '',
-      '  openspec-guard check --update-baseline',
-      `  openspec-guard check --baseline ${'.openspec-guard-baseline.json'} --fail-on fail`,
+      `  ${format.toolName} check --update-baseline`,
+      `  ${format.toolName} check --baseline ${format.defaultBaselinePath} --fail-on fail`,
     ];
   }
 
@@ -174,7 +175,7 @@ function nextStep(report: Report): string[] {
       `Next: ${withCandidate} of them already have a ranked candidate test. Walk them, ` +
         'best first:',
       '',
-      '  openspec-guard link --limit 20',
+      `  ${format.toolName} link --limit 20`,
     ];
   }
 
@@ -182,7 +183,7 @@ function nextStep(report: Report): string[] {
     '',
     'Next: no candidate could be ranked, so link them by searching the test titles:',
     '',
-    '  openspec-guard link --limit 20',
+    `  ${format.toolName} link --limit 20`,
   ];
 }
 
@@ -191,7 +192,7 @@ function nextStep(report: Report): string[] {
  * that does have tests and no selectors at all. It describes the algorithm; it
  * is not an excuse.
  */
-function languageNotice(report: Report): string[] {
+function languageNotice(report: Report, format: ToolIdentity): string[] {
   const usesSelectors = report.results.some((result) => result.selector !== null);
   const shouldWarn =
     report.options.heuristic &&
@@ -207,11 +208,15 @@ function languageNotice(report: Report): string[] {
     'No criterion was linked by similarity on this repository.',
     'Similarity compares words, it does not translate them: scenarios written in one',
     'language and test titles written in another cannot meet. To link a scenario to a',
-    'test, add <!-- openspec-guard:test="exact test title" --> under its heading.',
+    `test, add <!-- ${format.annotationPrefix}:test="exact test title" --> under its heading.`,
   ];
 }
 
-export function renderTerminal(report: Report, options: TerminalOptions): string {
+export function renderTerminal(
+  report: Report,
+  options: TerminalOptions,
+  format: ToolIdentity,
+): string {
   const lines: string[] = [...headerOf(report)];
 
   // Baselined criteria are frozen debt. They are counted, never listed among
@@ -264,8 +269,8 @@ export function renderTerminal(report: Report, options: TerminalOptions): string
     lines.push(`${report.diagnostics.unparsedFiles.length} test file(s) failed to parse.`);
   }
 
-  lines.push(...languageNotice(report));
-  lines.push(...nextStep(report));
+  lines.push(...languageNotice(report, format));
+  lines.push(...nextStep(report, format));
 
   if (!report.gates.passed) {
     lines.push('');
