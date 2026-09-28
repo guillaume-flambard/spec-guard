@@ -19,12 +19,14 @@ Do not post private specifications, source code, credentials, or customer data.
 
 ## Local setup
 
-The repository requires Node.js 20.11 or later and uses pnpm 11.24.0.
+The repository requires Node.js 20.11 or later and pnpm 11.24.0. Confirm both
+before installing dependencies:
 
 ```bash
+node --version
+pnpm --version
 git clone https://github.com/guillaume-flambard/spec-guard.git
 cd spec-guard
-corepack enable
 pnpm install --frozen-lockfile
 ```
 
