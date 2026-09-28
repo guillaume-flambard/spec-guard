@@ -1,0 +1,65 @@
+name: Bug report
+description: Report a reproducible incorrect result or failure.
+title: 'bug: '
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to make the problem reproducible. Do not include private specs, source code, credentials, or customer data.
+  - type: input
+    id: version
+    attributes:
+      label: OpenSpec Guard version
+      description: Run `npx openspec-guard --version` if needed.
+      placeholder: 0.2.0
+    validations:
+      required: true
+  - type: input
+    id: command
+    attributes:
+      label: Command
+      description: Include the relevant options, but remove private paths.
+      placeholder: npx --yes openspec-guard@0.2.0 check --runner vitest
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Minimal public example
+      description: Include a small scenario heading and test title, or link to a public reproducer.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+      description: Include the verdict, reason, exit code, or error message.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+      description: Explain what OpenSpec Guard should have reported instead.
+    validations:
+      required: true
+  - type: dropdown
+    id: runner
+    attributes:
+      label: Test runner
+      options:
+        - Vitest
+        - Jest
+        - Both
+        - Detection failed before a runner was selected
+    validations:
+      required: true
+  - type: input
+    id: node
+    attributes:
+      label: Node.js version
+      placeholder: 20.11.1
+    validations:
+      required: true

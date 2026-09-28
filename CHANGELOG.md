@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.3.0 (2026-09-13)
+## Unreleased
+
+Target version: `0.3.0`. The current npm release is `0.2.0`.
 
 ### Fixed
 
@@ -22,7 +24,8 @@
 ### Documentation
 
 - Runnable signup example, pinned sku demo and experimental Spec Kit feasibility probe.
-- npm examples now target 0.3.0. Historical probes remain pinned to 0.2.0 to preserve
-  their measurements; their old empty-success result is fixed in this release.
+- Public install examples remain pinned to npm 0.2.0 until 0.3.0 is actually
+  published. Historical probes also stay pinned to 0.2.0 to preserve their
+  measurements; their old empty-success result is fixed by the unreleased code.
 
 Spec Kit support is still experimental and is not included as a native adapter.

@@ -1,37 +1,45 @@
 # OpenSpec Guard
 
-**Which OpenSpec scenarios have a test linked to them?**
+OpenSpec Guard reports which OpenSpec scenarios are linked to a Vitest or Jest
+test. It reads specs and test titles without running the tests, importing the
+application, or calling an LLM.
 
-OpenSpec Guard reads your specs and the titles of your Vitest or Jest tests.
-It reports explicit links, possible matches and scenarios with no convincing match.
-It never runs tests, imports your application or calls an LLM.
-A link does not prove that the test passes or checks the right behaviour.
+> **Current public release: [`0.2.0`](https://www.npmjs.com/package/openspec-guard/v/0.2.0).**
+> npm does not contain `0.3.0`. This repository includes unreleased `0.3.0`
+> work, so the install examples below pin the version that people can actually
+> download today. The matching GitHub release is
+> [`v0.2.0`](https://github.com/guillaume-flambard/spec-guard/releases/tag/v0.2.0).
 
-## Try it on your repository
+An OpenSpec Guard pass means that a scenario is linked to a test title. It does
+not prove that the test passes or that its assertions cover the complete
+behaviour.
 
-From a repository with `openspec/specs` and Vitest or Jest tests:
+## Try it on a repository
+
+Requirements: Node.js 20.11 or later, an OpenSpec directory at
+`openspec/specs` or `specs`, and Vitest or Jest tests.
 
 ```bash
-npx --yes openspec-guard@0.3.0 check
+npx --yes openspec-guard@0.2.0 check
 ```
 
-This command reports without changing files. It exits successfully even when it
-finds unlinked scenarios; CI gates are opt-in. Node 20.11 or later is required.
+The first run is read-only. It reports linked scenarios, possible matches, and
+scenarios with no convincing match. Findings do not fail the command unless a
+gate is requested.
 
-If your repository also has Playwright tests, scope the test files explicitly:
+Scope the test files when a repository contains several runners:
 
 ```bash
-npx --yes openspec-guard@0.3.0 check --tests 'src/**/*.test.ts' --runner vitest
+npx --yes openspec-guard@0.2.0 check \
+  --tests 'src/**/*.test.ts' --runner vitest
 ```
 
-**Found a wrong match or a confusing result?**
-[Open an issue](https://github.com/guillaume-flambard/spec-guard/issues/new)
-with your command, package version and a small scenario/test-title example.
-Include only content you can share publicly.
+Run `npx --yes openspec-guard@0.2.0 check --help` for the complete set of
+released options.
 
-## A spec, a test, a result
+## Link a scenario explicitly
 
-A scenario carries the title of its test in an HTML comment:
+Put the exact test title in an HTML comment directly below the scenario heading:
 
 ```md
 #### Scenario: Empty email is rejected
@@ -42,7 +50,7 @@ A scenario carries the title of its test in an HTML comment:
 - **THEN** signup rejects the request
 ```
 
-The corresponding Vitest test:
+The corresponding test can be written with Vitest or Jest:
 
 ```ts
 it('rejects an empty email', () => {
@@ -50,59 +58,12 @@ it('rejects an empty email', () => {
 });
 ```
 
-Run the complete [signup example](examples/signup) from a clone of this repository:
-
-```bash
-cd examples/signup
-npx --yes openspec-guard@0.3.0 check \
-  --runner vitest --require-selector --fail-on fail,uncertain
-```
-
-The summary is:
-
-```text
-1 criteria: 1 pass (1 by selector, 0 by similarity), 0 uncertain, 0 fail, 0 skip
-```
-
-Rename the test without updating the annotation and the gate fails with
-`selector-unmatched`. The test body is never evaluated by Guard.
-
-## A real repository: three links in sku
-
-On a pinned revision of [seek-oss/sku](https://github.com/seek-oss/sku), I checked
-six local-host scenarios against one test file using the published 0.2.0 package.
-Adding three explicit annotations changed the report:
-
-|                     | Before | After |
-| ------------------- | -----: | ----: |
-| Linked by selector  |      0 |     3 |
-| Uncertain           |      3 |     1 |
-| No convincing match |      3 |     2 |
-
-One remaining suggestion points to the opposite behaviour. It stays uncertain.
-The two remaining failures are outside the selected test file's scope.
-These counts describe title matching, not sku's test coverage or quality.
-This is an independent example, not an adoption or endorsement by SEEK.
-
-[Read the cases and reproduce the result](docs/demo-sku.md).
-
-An experimental [Spec Kit feasibility report](docs/experiments/speckit-hammerkit.md)
-measures the same engine through a temporary conversion. Native Spec Kit support
-is not available in the published package.
-
-## How links work
-
-The annotation is an OpenSpec Guard convention, carried in an HTML comment.
-Selectors match the test's leaf title or its full name exactly. Use the full name
-when a title occurs in several suites:
+Selectors match either the leaf title or the full suite path. Use the full path
+when the same title occurs in several suites:
 
 ```md
 <!-- openspec-guard:test="signup > rejects an empty email" -->
 ```
-
-Without a selector, Guard compares words in scenario and test titles. It does not
-understand negation or translate between languages. Review suggestions before
-adding a selector. `--require-selector` disables similarity matching.
 
 For a scenario that needs a manual check, record the reason:
 
@@ -110,111 +71,102 @@ For a scenario that needs a manual check, record the reason:
 <!-- openspec-guard:non-testable reason="Requires a manual accessibility review" -->
 ```
 
-A scenario cannot carry both directives. A skipped test does not count as a link.
+These comments are an OpenSpec Guard convention, not OpenSpec syntax. A scenario
+cannot have both directives, and a skipped test never counts as a link.
 
-| Verdict     | Meaning                                                               |
-| ----------- | --------------------------------------------------------------------- |
-| `pass`      | An explicit selector resolves, or similarity exceeds the threshold    |
-| `uncertain` | A candidate needs review                                              |
-| `fail`      | No convincing match, or a missing, ambiguous or skipped selected test |
-| `skip`      | The scenario has a non-testable annotation with a reason              |
+The repository contains a complete [signup example](examples/signup) and a
+[reproducible check against a pinned public repository](docs/demo-sku.md).
 
-The report separates passes by selector from passes by similarity.
-[Earlier measurements](docs/measurements.md) explore where similarity helps and fails.
+## Adopt it without hiding existing debt
 
-## Adopt gradually, then gate CI
-
-After reading the first report, record the existing unlinked scenarios:
+Record the current unlinked scenarios after reviewing the first report:
 
 ```bash
-npx --yes openspec-guard@0.3.0 check --update-baseline
+npx --yes openspec-guard@0.2.0 check --update-baseline
 git add .openspec-guard-baseline.json
 ```
 
-Then fail on new failures:
+Then fail only when a new scenario is unlinked:
 
 ```bash
-npx --yes openspec-guard@0.3.0 check \
+npx --yes openspec-guard@0.2.0 check \
   --baseline .openspec-guard-baseline.json --fail-on fail
 ```
 
-The baseline suppresses existing failures in the gate. The report still shows
-them. New scenarios, changed scenario text and changed failure reasons are not
-silently suppressed. Review baseline updates as code changes.
+The baseline changes the gate, not the report. Existing failures remain visible.
+A new scenario, changed scenario text, or changed failure reason is not silently
+suppressed. Review baseline changes like any other code change.
 
-For strict explicit links, use `--require-selector` consistently when creating
-the baseline and running the gate.
+For repositories whose spec and test titles use different languages, add
+`--require-selector`. Similarity compares words. It does not translate them or
+understand negation.
 
-Without a baseline, a CI step can be:
+## Use it in GitHub Actions
 
-```yaml
-- run: npx --yes openspec-guard@0.3.0 check --fail-on fail,uncertain
-```
-
-A bundled GitHub Action is also available:
+The released Action is pinned to the same public version:
 
 ```yaml
-- uses: guillaume-flambard/spec-guard@v0.3.0
+- uses: guillaume-flambard/spec-guard@v0.2.0
   with:
     fail-on: fail
+    baseline: .openspec-guard-baseline.json
 ```
 
-| Exit code | Meaning                                     |
-| --------- | ------------------------------------------- |
-| `0`       | Report completed and requested gates passed |
-| `1`       | A requested gate failed                     |
-| `2`       | Invalid input or option                     |
-| `3`       | Internal error; please report it            |
+The Action annotates spec files, writes a job summary, and exposes the verdict
+counts as outputs. It bundles its runtime and does not install dependencies in
+the checked repository.
 
-## JSON and options
+## Read the report
+
+| Verdict     | Meaning                                                                       |
+| ----------- | ----------------------------------------------------------------------------- |
+| `pass`      | An explicit selector resolves, or title similarity exceeds the threshold      |
+| `uncertain` | A candidate exists and needs review                                           |
+| `fail`      | No usable link exists, or the selected test is missing, ambiguous, or skipped |
+| `skip`      | The scenario is declared non-testable with a reason                           |
+
+Exit code `0` means the report completed and every requested gate passed. Code
+`1` means a gate failed, `2` means the input or an option is invalid, and `3`
+means OpenSpec Guard failed internally.
+
+JSON output uses relative paths and stable ordering:
 
 ```bash
-npx --yes openspec-guard@0.3.0 check --format json > report.json
-npx --yes openspec-guard@0.3.0 check --help
+npx --yes openspec-guard@0.2.0 check --format json > report.json
 ```
 
-JSON uses relative paths and stable ordering, with no timestamp or machine name.
-The same input and options produce the same bytes. Each criterion has an ID
-derived from its path, requirement and scenario text. Adding an annotation does
-not change it; editing scenario text can.
+## Evidence and limits
 
-Useful options include `--cwd`, `--specs`, repeatable `--tests`,
-`--runner vitest|jest`, `--include-changes`, `--require-selector`, `--verbose`,
-`--fail-on` and `--min-pass`.
+The [measurements](docs/measurements.md) include the cases where title similarity
+helps and the cases where it produces noise. A separate
+[Spec Kit experiment](docs/experiments/speckit-hammerkit.md) uses a temporary
+conversion to exercise the engine. It is not native Spec Kit support.
 
-Version 0.3.0 also includes the interactive `link` command and a `--min-coverage`
-gate. The coverage floor reads the whole report even when a baseline is present.
+OpenSpec Guard does not inspect assertions, execute tests, translate titles,
+expand every dynamic or parameterized title, or support other spec formats. It
+cannot certify behavioural test coverage.
 
-```bash
-npx --yes openspec-guard@0.3.0 link --limit 10
-npx --yes openspec-guard@0.3.0 check --min-coverage 80
-```
+## Unreleased work
 
-## When no scenarios are recognized
+The source on `main` contains changes prepared for `0.3.0`, including assisted
+linking, a coverage percentage gate, and stricter rejection of unrecognized spec
+input. They are documented in the [changelog](CHANGELOG.md), but they are not in
+the npm release yet. Do not use an `@0.3.0` install or Action reference until npm
+lists that version and the GitHub release succeeds.
 
-If spec files exist but none contains an OpenSpec scenario, Guard exits with code 2
-and `E_NO_CRITERIA`. It reports the expected headings and writes no baseline or
-success report. This includes unsupported formats such as Spec Kit.
+## Contributing
 
-`--allow-empty` only permits a directory containing no `spec.md` files. It cannot
-bypass an unrecognized format. Valid removal-only deltas still report their
-removed scenarios without requiring tests for deleted behaviour.
+Bug reports and focused pull requests are welcome. Start with
+[CONTRIBUTING.md](CONTRIBUTING.md), which covers the repository layout, local
+checks, generated Action bundle, and pull request expectations.
 
-See the [release notes](CHANGELOG.md) for the changes since npm 0.2.0.
+If a match looks wrong, [open a bug report](https://github.com/guillaume-flambard/spec-guard/issues/new?template=bug.yml)
+with the package version, command, and a small scenario and test-title example.
+Include only content you can share publicly.
 
-## Limitations
+## License and names
 
-Guard matches titles. It does not inspect assertions or execute tests, and cannot
-prove that a scenario's behaviour is tested correctly. Similarity can suggest
-unrelated or opposite behaviours. Dynamic titles and parameterized test tables
-are not fully expanded. Scope mixed test runners with `--tests`.
+[MIT](LICENSE), published by Memo Labs (Guillaume Flambard).
 
-The published package supports OpenSpec with Vitest or Jest. It does not support
-`node:test`, other spec formats, translation, watch mode or SARIF.
-
-## License
-
-MIT. Published by Memo Labs (Guillaume Flambard).
-
-The npm package is `openspec-guard`. Other packages named `specguard` or
+The npm package is `openspec-guard`. Packages named `specguard` or
 `@spec-guard/cli` are unrelated.
