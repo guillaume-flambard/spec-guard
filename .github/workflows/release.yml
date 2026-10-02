@@ -97,24 +97,45 @@ jobs:
             }
           '
 
-      # No token anywhere, on purpose. npm removed classic and automation tokens
-      # in November 2025, and a granular token's "bypass 2FA" option stops being
-      # able to publish in January 2027. Trusted publishing replaces them: npm
-      # trades this workflow's OIDC identity for a short-lived credential, so
-      # the only thing that can publish this package is this workflow, in this
-      # repository. The other side of it is configured on npmjs.com, and npm
-      # does not validate that entry when it is saved, so a typo there only ever
-      # surfaces here.
+      # Known: the publish step does not authenticate. Do not read the rest of this
+      # comment as a plan that works, it is what has been ruled out.
       #
-      # npm, not pnpm: pnpm's documentation does not claim OIDC support.
+      # 0.3.0 is published (02/10/2026, by hand, no provenance). Every attempt to
+      # publish from here since has failed at `npm publish` with ENEEDAUTH, and npm
+      # never attempts the identity exchange. Ruled out, with evidence:
       #
-      # `id-token: write` above is what makes the OIDC endpoint exist. The step
-      # below asks for that token and prints what the runner is willing to hand
-      # over, because npm's ENEEDAUTH is silent about the reason: the three
-      # failures so far all looked the same from the outside while the actual
-      # cause was the credential line, then a missing id-token request, then the
-      # trusted publisher entry. Saying it here is cheaper than reading it back
-      # out of a failed publish.
+      #   - npm CLI is 11.19.0 on the runner, well past the 11.5.1 that npm requires.
+      #   - `id-token: write` is set, and the step below proves the runner mints an
+      #     OIDC token whose claims are `guillaume-flambard/spec-guard` and
+      #     `.github/workflows/release.yml`, which is exactly what the trusted
+      #     publisher on npmjs.com is configured with.
+      #   - `registry-url` was the original cause of a bare 404 and is now gone, so
+      #     no empty `_authToken` is left in a runner .npmrc to be preferred over OIDC.
+      #   - The trusted publisher exists, has `guillaume-flambard` / `spec-guard` /
+      #     `release.yml`, an empty environment name, and `Allow npm publish` ticked.
+      #     It was created before 03/09/2026, the date npm changed which actions an
+      #     entry allows by default, which is why that box has to be ticked by hand.
+      #   - `repository.url` in package.json matches the GitHub repository exactly.
+      #     npm requires that match, and it holds: `spec-guard`, not the former
+      #     `openspec-guard` name that 0.1.0 and 0.2.0 still carry in their metadata.
+      #
+      # So the workflow is correct and the npm entry is correct and the runner
+      # offers a usable identity, and npm still refuses. That leaves something
+      # outside what this file can reach, most likely state left on the package
+      # from when it was `openspec-guard` before the 19/09/2026 ownership change.
+      # Recreating the trusted publisher entry is the next thing to try; deleting
+      # it and adding it again is the only way to change any of its fixed fields.
+      #
+      # Until then, publishing is a manual step and it works:
+      #
+      #   git tag v<X.Y.Z> && git push origin v<X.Y.Z>   # tag the release
+      #   npm publish --access public                     # from a clean checkout
+      #
+      # That is how 0.3.0 went out. npm prompts for a browser one-time password, so
+      # the account has to be the one holding write access (`memolabs-apps`).
+      #
+      # Keep `id-token: write` and the step below: they are the evidence that turns
+      # the next ENEEDAUTH into a fact instead of a guess.
       - name: The runner can mint the OIDC identity npm needs
         if: steps.published.outputs.exists == 'false'
         run: |
