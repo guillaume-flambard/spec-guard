@@ -24,16 +24,6 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    # Trusted publishing has no token, and this job must not have one.
-    #
-    # `registry-url` on setup-node writes `//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}`
-    # into .npmrc. With no secret behind that variable the token is empty, npm
-    # prefers it over OIDC, and the publish is anonymous: npm answers 404. Declaring
-    # the registry as an empty value does not fix it either, because an empty token
-    # is still a token, and npm fails the auth with ENEEDAUTH instead of reaching for
-    # the runner's identity. So the line is removed just before publishing, which
-    # leaves npm with no credential at all and lets it exchange the OIDC identity for
-    # a short-lived one. `id-token: write` above is what makes that token exist.
     steps:
       - uses: actions/checkout@v7
 
@@ -46,6 +36,7 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
+          registry-url: https://registry.npmjs.org
 
       - run: pnpm install --frozen-lockfile
 
@@ -110,26 +101,6 @@ jobs:
       # surfaces here.
       #
       # npm, not pnpm: pnpm's documentation does not claim OIDC support.
-      - name: Drop the credential line setup-node left behind
-        if: steps.published.outputs.exists == 'false'
-        run: |
-          # setup-node points NPM_CONFIG_USERCONFIG at a runner-owned .npmrc that
-          # may still carry an `_authToken` line. Leaving it in place makes npm
-          # fail the auth outright rather than fall through to OIDC, so the line
-          # is stripped and the file is dropped only if it has nothing left.
-          userconfig="${NPM_CONFIG_USERCONFIG:-}"
-          if [ -n "$userconfig" ] && [ -f "$userconfig" ]; then
-            if grep -q '_authToken' "$userconfig"; then
-              sed -i.bak '/_authToken/d' "$userconfig"
-              echo "Removed the _authToken line from $userconfig"
-            fi
-            if ! grep -q . "$userconfig"; then
-              rm -f "$userconfig"
-              echo "$userconfig held nothing else, removed it"
-            fi
-          fi
-          echo "npm $(npm --version) will authenticate through OIDC"
-
       - name: Publish to npm with provenance
         if: steps.published.outputs.exists == 'false'
         run: npm publish --access public --provenance
