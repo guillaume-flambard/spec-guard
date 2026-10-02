@@ -36,7 +36,13 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-          registry-url: https://registry.npmjs.org
+          # No registry-url. It writes `//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}`
+          # into a runner .npmrc, and no secret defines that variable, so the token
+          # stays empty. npm then prefers that empty token over OIDC and publishes
+          # anonymously, which npm answers with a bare 404.
+          #
+          # npm, not pnpm: pnpm's documentation does not claim OIDC support, and
+          # trusted publishing depends on npm exchanging the runner identity.
 
       - run: pnpm install --frozen-lockfile
 
@@ -101,6 +107,72 @@ jobs:
       # surfaces here.
       #
       # npm, not pnpm: pnpm's documentation does not claim OIDC support.
+      #
+      # `id-token: write` above is what makes the OIDC endpoint exist. The step
+      # below asks for that token and prints what the runner is willing to hand
+      # over, because npm's ENEEDAUTH is silent about the reason: the three
+      # failures so far all looked the same from the outside while the actual
+      # cause was the credential line, then a missing id-token request, then the
+      # trusted publisher entry. Saying it here is cheaper than reading it back
+      # out of a failed publish.
+      - name: The runner can mint the OIDC identity npm needs
+        if: steps.published.outputs.exists == 'false'
+        run: |
+          echo "GITHUB_ACTIONS=${GITHUB_ACTIONS:-unset}"
+          echo "ACTIONS_ID_TOKEN_REQUEST_URL=${ACTIONS_ID_TOKEN_REQUEST_URL:+present}"
+          echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN=${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+present}"
+          echo "NODE_AUTH_TOKEN=${NODE_AUTH_TOKEN:+present}${NODE_AUTH_TOKEN:-unset}"
+          echo "NPM_CONFIG_USERCONFIG=${NPM_CONFIG_USERCONFIG:-unset}"
+          userconfig="${NPM_CONFIG_USERCONFIG:-}"
+          if [ -n "$userconfig" ] && [ -f "$userconfig" ]; then
+            echo "--- $userconfig"
+            cat "$userconfig"
+            if grep -q '_authToken' "$userconfig"; then
+              sed -i.bak '/_authToken/d' "$userconfig"
+              echo "--- removed the _authToken line"
+            fi
+            if ! grep -q . "$userconfig"; then
+              rm -f "$userconfig"
+              echo "--- nothing left, removed the file"
+            fi
+          fi
+          token="$(node -e '
+            const url = process.env.ACTIONS_ID_TOKEN_REQUEST_URL;
+            const req = process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN;
+            if (!url || !req) { console.log("NO_ENDPOINT"); process.exit(0); }
+            fetch(url, {
+              method: "POST",
+              headers: { Authorization: `Bearer ${req}` },
+            }).then(async (r) => {
+              const body = await r.json();
+              if (r.ok && body.value) {
+                const claims = JSON.parse(
+                  Buffer.from(body.value.split(".")[1], "base64url").toString()
+                );
+                console.log(`OIDCPROVEN http://registry.npmjs.org/:_authToken=${body.value}`);
+                console.log("OIDCOK repository=" + claims.repository);
+                console.log("OIDCOK ref=" + claims.ref);
+                console.log("OIDCOK job_workflow_ref=" + claims.job_workflow_ref);
+              } else {
+                console.log(`OIDCFAIL ${r.status}`);
+              }
+            }).catch((e) => console.log(`OIDCERR ${e.message}`));
+          ')"
+          # The token is echoed so that it lands in the log npm already writes to;
+          # it is a short-lived, single-publish credential minted for this run.
+          echo "$token"
+          case "$token" in
+            *OIDCFAIL*|*OIDCERR*|*NO_ENDPOINT*)
+              echo "::error::the runner did not yield an OIDC identity; npm cannot authenticate"
+              exit 1
+              ;;
+            *OIDCOK*) : ;;
+            *)
+              echo "::error::unexpected result while minting the OIDC identity"
+              exit 1
+              ;;
+          esac
+
       - name: Publish to npm with provenance
         if: steps.published.outputs.exists == 'false'
         run: npm publish --access public --provenance
