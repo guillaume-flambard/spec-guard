@@ -24,6 +24,14 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # Trusted publishing has no token. `registry-url` on setup-node used to write
+    # `//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}` into .npmrc, and npm
+    # prefers that token over OIDC, so the publish went out anonymous and npm
+    # answered 404. The registry is declared here as an empty value instead: the
+    # .npmrc line is then written with an empty token, npm treats it as absent,
+    # and the runner exchanges its OIDC identity for a short-lived credential.
+    env:
+      NODE_AUTH_TOKEN: ''
     steps:
       - uses: actions/checkout@v7
 
@@ -36,7 +44,6 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-          registry-url: https://registry.npmjs.org
 
       - run: pnpm install --frozen-lockfile
 
